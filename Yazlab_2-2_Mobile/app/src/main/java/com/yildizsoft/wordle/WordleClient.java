@@ -34,7 +34,7 @@ public class WordleClient implements Runnable
                 if(task.getTaskType() == WordleTaskType.QUIT)
                 {
                     MainWordleActivity.wordleTasks.remove(task);
-                    SendMessageToServer(".");
+                    SendMessageToServer("quit");
                     MainWordleActivity.ShowDialogBox("Bağlantı kesiliyor.");
                     return;
                 }
