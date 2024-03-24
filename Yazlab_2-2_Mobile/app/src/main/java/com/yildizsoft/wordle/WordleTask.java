@@ -1,33 +1,35 @@
 package com.yildizsoft.wordle;
 
+import java.util.List;
+
 public class WordleTask
 {
-    private String task;
-    private WordleTaskType taskType;
+    private List<String> contents;
+    private WordleTaskType task;
 
-    public WordleTask(WordleTaskType type, String task)
+    public WordleTask(WordleTaskType task, List<String> contents)
     {
+        this.contents = contents;
         this.task = task;
-        this.taskType = type;
     }
 
-    public String getTask()
+    public List<String> getContents()
+    {
+        return contents;
+    }
+
+    public void setContents(List<String> contents)
+    {
+        this.contents = contents;
+    }
+
+    public WordleTaskType getTask()
     {
         return task;
     }
 
-    public void setTask(String task)
+    public void setTask(WordleTaskType task)
     {
         this.task = task;
-    }
-
-    public WordleTaskType getTaskType()
-    {
-        return taskType;
-    }
-
-    public void setTaskType(WordleTaskType taskType)
-    {
-        this.taskType = taskType;
     }
 }

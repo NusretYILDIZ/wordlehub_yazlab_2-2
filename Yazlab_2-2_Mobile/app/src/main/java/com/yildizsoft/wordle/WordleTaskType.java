@@ -5,5 +5,6 @@ public enum WordleTaskType
     NONE,
     QUIT,
     GET,
-    POST
+    POST,
+    NEW_ACCOUNT
 }

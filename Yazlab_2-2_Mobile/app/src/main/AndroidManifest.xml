@@ -14,7 +14,13 @@
             tools:remove="android:appComponentFactory"
             tools:targetApi="28">
         <activity
-                android:name=".MainWordleActivity"
+                android:name=".SignUpActivity"
+                android:exported="false"/>
+        <activity
+                android:name=".LoginActivity"
+                android:exported="false"/>
+        <activity
+                android:name=".SplashScreenActivity"
                 android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

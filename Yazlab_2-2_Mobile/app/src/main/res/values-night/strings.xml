@@ -6,4 +6,10 @@
     <string name="login">Giriş Yap</string>
     <string name="sign_up">Üye Ol</string>
     <string name="play_offline">Çevrimdışı Oyna</string>
+    <string name="password_confirm">Şifre (Tekrar)</string>
+    <string name="create_new_account">Yeni Hesap Oluştur</string>
+    <string name="login_if_has_account">Zaten üye misin? O zaman oturum aç.</string>
+    <string name="warning_empty_username">Kullanıcı adı boş olamaz.</string>
+    <string name="warning_empty_password">Şifre boş olamaz.</string>
+    <string name="warning_password_match">Şifreler eşleşmiyor.</string>
 </resources>

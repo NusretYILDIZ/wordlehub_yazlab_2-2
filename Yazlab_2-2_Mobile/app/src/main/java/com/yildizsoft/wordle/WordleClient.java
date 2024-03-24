@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class WordleClient implements Runnable
 {
+    public static ArrayList<WordleTask> wordleTasks = new ArrayList<>();
     private String serverIP;
     private int serverPort;
     private static Socket clientSock;
@@ -20,6 +22,7 @@ public class WordleClient implements Runnable
         this.serverIP = serverIP;
         this.serverPort = serverPort;
         this.shouldRun = true;
+        wordleTasks.clear();
     }
 
     @Override
@@ -29,19 +32,22 @@ public class WordleClient implements Runnable
 
         while(shouldRun)
         {
-            for(WordleTask task : MainWordleActivity.wordleTasks)
+            for(WordleTask task : wordleTasks)
             {
-                if(task.getTaskType() == WordleTaskType.QUIT)
+                if(task.getTask() == WordleTaskType.QUIT)
                 {
-                    MainWordleActivity.wordleTasks.remove(task);
-                    SendMessageToServer("quit");
-                    MainWordleActivity.ShowDialogBox("Bağlantı kesiliyor.");
+                    wordleTasks.remove(task);
+                    DisconnectClient();
                     return;
                 }
-                else if(task.getTaskType() == WordleTaskType.POST)
+                else
                 {
-                    SendMessageToServer(task.getTask());
-                    MainWordleActivity.wordleTasks.remove(task);
+                    SendMessageToServer(task.getTask().toString());
+                    for(String msg : task.getContents())
+                    {
+                        SendMessageToServer(msg);
+                    }
+                    wordleTasks.remove(task);
                 }
             }
         }
@@ -51,12 +57,15 @@ public class WordleClient implements Runnable
 
     public void StartClient()
     {
-        try {
+        try
+        {
             clientSock = new Socket(serverIP, serverPort);
             clientOut = new PrintWriter(clientSock.getOutputStream(), true);
             clientIn = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
-        } catch (IOException e) {
-            MainWordleActivity.ShowDialogBox("Sunucuya bağlanırken hata oluştu.\n" + e);
+        }
+        catch (IOException e)
+        {
+            //LoginActivity.ShowDialogBox("Sunucuya bağlanırken hata oluştu.\n" + e);
             shouldRun = false;
         }
     }
@@ -66,17 +75,31 @@ public class WordleClient implements Runnable
         clientOut.println(message);
     }
 
+    public void DisconnectClient()
+    {
+        SendMessageToServer("quit");
+        //LoginActivity.ShowDialogBox("Bağlantı kesiliyor.");
+    }
+
     public void StopClient()
     {
-        try {
+        wordleTasks.clear();
+
+        try
+        {
             clientIn.close();
             clientOut.close();
             clientSock.close();
         }
         catch(IOException e)
         {
-            MainWordleActivity.ShowDialogBox("Client kapatılırken bir hata oluştu.\n" + e);
+            //LoginActivity.ShowDialogBox("Client kapatılırken bir hata oluştu.\n" + e);
             shouldRun = false;
         }
+    }
+
+    public static void AddNewTask(WordleTask newTask)
+    {
+        wordleTasks.add(newTask);
     }
 }
