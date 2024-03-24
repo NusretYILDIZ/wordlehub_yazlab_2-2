@@ -1,6 +1,8 @@
 package com.yildizsoft.wordle;
 
 import android.content.Intent;
+import android.text.SpannableString;
+import android.text.style.UnderlineSpan;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -33,6 +35,10 @@ public class SignUpActivity extends AppCompatActivity
 
         Button signUp = findViewById(R.id.signUpButton);
         TextView login = findViewById(R.id.loginText);
+
+        SpannableString str = new SpannableString(getString(R.string.login_if_has_account));
+        str.setSpan(new UnderlineSpan(), 25, str.length() - 1, 0);
+        login.setText(str);
 
         login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,7 +89,7 @@ public class SignUpActivity extends AppCompatActivity
 
                 if(!valid) return;
 
-                WordleClient.AddNewTask(new WordleTask(WordleTaskType.NEW_ACCOUNT, Arrays.asList(username[0], password[0])));
+                WordleClient.AddNewTask(new WordleTask(WordleTaskType.SIGNUP, Arrays.asList(username[0], password[0])));
                 GoToLoginActivity();
             }
         });
@@ -92,13 +98,13 @@ public class SignUpActivity extends AppCompatActivity
     protected void GoToLoginActivity()
     {
         startActivity(new Intent(getApplicationContext(), LoginActivity.class));
-        //finish();
+        finish();
     }
 
-    @Override
+    /*@Override
     protected void onDestroy()
     {
         super.onDestroy();
         WordleClient.AddNewTask(new WordleTask(WordleTaskType.QUIT, null));
-    }
+    }*/
 }

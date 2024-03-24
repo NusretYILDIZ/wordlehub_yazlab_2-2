@@ -22,7 +22,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/create_new_account"
-            android:layout_marginBottom="50dp"
             android:textAlignment="center"
             android:textSize="20sp"
     />
@@ -30,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/username"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="50dp"
             android:minHeight="48dp"
             android:id="@+id/loginUsernameInput"
     />
@@ -86,7 +85,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="50dp"
-            android:layout_marginBottom="20dp"
             android:text="@string/sign_up"
             android:id="@+id/signUpButton"
             android:backgroundTint="@color/skyBlue"
@@ -94,6 +92,7 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:id="@+id/loginText"
             android:text="@string/login_if_has_account"
             android:clickable="true"

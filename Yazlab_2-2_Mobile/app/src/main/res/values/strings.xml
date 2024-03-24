@@ -8,8 +8,9 @@
     <string name="play_offline">Çevrimdışı Oyna</string>
     <string name="password_confirm">Şifre (Tekrar)</string>
     <string name="create_new_account">Yeni Üyelik Oluştur</string>
-    <string name="login_if_has_account">Zaten üye misin? O zaman <u>oturum aç</u>.</string>
+    <string name="login_if_has_account">Zaten üye misin? O zaman oturum aç.</string>
     <string name="warning_empty_username">Kullanıcı adı boş olamaz.</string>
     <string name="warning_empty_password">Şifre boş olamaz.</string>
     <string name="warning_password_match">Şifreler eşleşmiyor.</string>
+    <string name="sign_up_if_dont_have_acc">Hesabın yok mu? Hemen üye ol.</string>
 </resources>

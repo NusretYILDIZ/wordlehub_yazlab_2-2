@@ -12,7 +12,6 @@
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="40dp"
             android:text="@string/login_title_beta"
             android:textAlignment="center"
             android:textSize="40sp"
@@ -23,32 +22,62 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/username"
-            android:layout_marginBottom="5dp"
+            android:layout_marginTop="50dp"
             android:minHeight="48dp"
             android:id="@+id/loginUsernameInput"
+    />
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5sp"
+            android:paddingHorizontal="10sp"
+            android:id="@+id/emptyUsernameText"
+            android:text="@string/warning_empty_username"
+            android:textColor="@color/red"
+            android:visibility="gone"
     />
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/password"
             android:inputType="textPassword"
-            android:layout_marginBottom="50dp"
+            android:layout_marginTop="5dp"
             android:minHeight="48dp"
             android:id="@+id/loginPasswordInput"
+    />
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5sp"
+            android:paddingHorizontal="10sp"
+            android:id="@+id/emptyPasswordText"
+            android:text="@string/warning_empty_password"
+            android:textColor="@color/red"
+            android:visibility="gone"
     />
     <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
             android:text="@string/login"
             android:id="@+id/loginButton"
             android:backgroundTint="@color/skyBlue"
     />
-    <Button
+    <!--<Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/sign_up"
             android:id="@+id/signUpButton"
             android:backgroundTint="@color/skyBlue"
+    />-->
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:id="@+id/signUpText"
+            android:text="@string/sign_up_if_dont_have_acc"
+            android:clickable="true"
+            android:focusable="true"
     />
 
     <!-- For the future -->

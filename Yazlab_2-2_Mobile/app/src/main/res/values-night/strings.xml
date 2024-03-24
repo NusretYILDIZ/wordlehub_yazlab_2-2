@@ -12,4 +12,5 @@
     <string name="warning_empty_username">Kullanıcı adı boş olamaz.</string>
     <string name="warning_empty_password">Şifre boş olamaz.</string>
     <string name="warning_password_match">Şifreler eşleşmiyor.</string>
+    <string name="sign_up_if_dont_have_acc"><![CDATA[Hesabın yok mu? Hemen <u>üye ol</u>.]]></string>
 </resources>

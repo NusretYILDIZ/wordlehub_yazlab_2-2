@@ -6,5 +6,6 @@ public enum WordleTaskType
     QUIT,
     GET,
     POST,
-    NEW_ACCOUNT
+    SIGNUP,
+    LOGIN
 }
