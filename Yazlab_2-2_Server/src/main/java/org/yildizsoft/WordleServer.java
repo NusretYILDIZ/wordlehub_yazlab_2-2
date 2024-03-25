@@ -1,5 +1,6 @@
 package org.yildizsoft;
 
+import com.mongodb.MongoException;
 import com.mongodb.client.*;
 import org.bson.Document;
 
@@ -13,10 +14,6 @@ public class WordleServer
     private ServerSocket serverSocket;
     private int serverPort;
 
-    private static final String mongoDbUrl = "mongodb://localhost:27017";
-    private MongoClient mongoClient;
-    private MongoDatabase mongoDatabase;
-
     public WordleServer(int port)
     {
         this.serverPort = port;
@@ -26,21 +23,19 @@ public class WordleServer
     {
         try
         {
+            MongoManager.Start();
+        }
+        catch(MongoException e)
+        {
+            System.err.println("MongoDB'ye bağlanırken bir sorun oluştu.\n\n" + e);
+            return;
+        }
+
+        try
+        {
             System.out.println("\nWordle sunucusu başlatılıyor...");
             serverSocket = new ServerSocket(serverPort);
-
-            mongoClient = MongoClients.create("mongodb://localhost:27017");
-            mongoDatabase = mongoClient.getDatabase("yazlab_2-2");
-
-            System.out.println("Wordle sunucusu başarıyla başlatıldı.");
-
-            MongoCollection<Document> collection = mongoDatabase.getCollection("yazlab_2-2");
-            FindIterable<Document> docs = collection.find();
-
-            for(Document doc : docs)
-            {
-                System.out.println(doc.toJson());
-            }
+            System.out.println("\nWordle sunucusu başarıyla başlatıldı.");
 
             while (true)
             {

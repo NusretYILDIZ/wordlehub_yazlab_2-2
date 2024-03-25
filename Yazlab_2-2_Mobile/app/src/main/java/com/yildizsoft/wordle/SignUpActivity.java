@@ -14,15 +14,24 @@ import java.util.Arrays;
 
 public class SignUpActivity extends AppCompatActivity
 {
+    String username;
+    String password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+        TextView login = findViewById(R.id.loginText);
 
-        final String[] username = new String[1];
-        final String[] password = new String[1];
+        SpannableString str = new SpannableString(getString(R.string.login_if_has_account));
+        str.setSpan(new UnderlineSpan(), 25, str.length() - 1, 0);
+        login.setText(str);
+
+        WordleClient.SetFragmentManager(getSupportFragmentManager());
+
+        //final String[] username = new String[1];
+        //final String[] password = new String[1];
         //final String[] passwordConfirm = new String[1];
 
         EditText usernameEditText = findViewById(R.id.loginUsernameInput);
@@ -34,11 +43,6 @@ public class SignUpActivity extends AppCompatActivity
         TextView passwordMatch = findViewById(R.id.passwordMatchText);
 
         Button signUp = findViewById(R.id.signUpButton);
-        TextView login = findViewById(R.id.loginText);
-
-        SpannableString str = new SpannableString(getString(R.string.login_if_has_account));
-        str.setSpan(new UnderlineSpan(), 25, str.length() - 1, 0);
-        login.setText(str);
 
         login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,7 +66,7 @@ public class SignUpActivity extends AppCompatActivity
                 else
                 {
                     emptyUsername.setVisibility(View.GONE);
-                    username[0] = usernameEditText.getText().toString();
+                    username = usernameEditText.getText().toString();
                 }
 
                 if(passwordEditText.getText().toString().isEmpty())
@@ -73,10 +77,10 @@ public class SignUpActivity extends AppCompatActivity
                 else
                 {
                     emptyPassword.setVisibility(View.GONE);
-                    password[0] = passwordEditText.getText().toString();
+                    password = passwordEditText.getText().toString();
                 }
 
-                if(passwordConfirmEditText.getText().toString().isEmpty() || (password[0] != null && !password[0].equals(passwordConfirmEditText.getText().toString())))
+                if(passwordConfirmEditText.getText().toString().isEmpty() || (password != null && !password.equals(passwordConfirmEditText.getText().toString())))
                 {
                     passwordMatch.setVisibility(View.VISIBLE);
                     valid = false;
@@ -89,7 +93,8 @@ public class SignUpActivity extends AppCompatActivity
 
                 if(!valid) return;
 
-                WordleClient.AddNewTask(new WordleTask(WordleTaskType.SIGNUP, Arrays.asList(username[0], password[0])));
+                WordleClient.ShowDialogBox(username + "\n" + password);
+                WordleClient.AddNewTask(new WordleTask(WordleTaskType.SIGNUP, Arrays.asList(username, password)));
                 GoToLoginActivity();
             }
         });

@@ -14,6 +14,8 @@ public class SplashScreenActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
 
+        WordleClient.SetFragmentManager(getSupportFragmentManager());
+
         new Thread(new WordleClient("192.168.0.103", 65535)).start();
 
         Handler handler = new Handler(Looper.getMainLooper());

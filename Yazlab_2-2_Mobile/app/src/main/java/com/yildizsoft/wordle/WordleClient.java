@@ -1,5 +1,10 @@
 package com.yildizsoft.wordle;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import androidx.fragment.app.FragmentManager;
+import kotlinx.coroutines.channels.Send;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,6 +21,7 @@ public class WordleClient implements Runnable
     private static PrintWriter clientOut;
     private static BufferedReader clientIn;
     private boolean shouldRun;
+    private static FragmentManager fragmentManager;
 
     public WordleClient(String serverIP, int serverPort)
     {
@@ -29,8 +35,9 @@ public class WordleClient implements Runnable
     public void run()
     {
         StartClient();
+        //ShowDialogBox("Sunucuya başarıyla bağlanıldı.");
 
-        while(shouldRun)
+        while(true)
         {
             for(WordleTask task : wordleTasks)
             {
@@ -42,17 +49,22 @@ public class WordleClient implements Runnable
                 }
                 else
                 {
-                    SendMessageToServer(task.getTask().toString());
+                    //SendMessageToServer(task.getTask().toString());
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append(task.getTask().toString());
+
                     for(String msg : task.getContents())
                     {
-                        SendMessageToServer(msg);
+                        //SendMessageToServer(msg);
+                        stringBuilder.append('"').append(msg);
                     }
+                    SendMessageToServer(stringBuilder.toString());
                     wordleTasks.remove(task);
                 }
             }
         }
 
-        StopClient();
+        //StopClient();
     }
 
     public void StartClient()
@@ -62,17 +74,20 @@ public class WordleClient implements Runnable
             clientSock = new Socket(serverIP, serverPort);
             clientOut = new PrintWriter(clientSock.getOutputStream(), true);
             clientIn = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
+            //ShowDialogBox("Sunucuya başarıyla bağlanıldı.");
         }
         catch (IOException e)
         {
             //LoginActivity.ShowDialogBox("Sunucuya bağlanırken hata oluştu.\n" + e);
-            shouldRun = false;
+            //shouldRun = false;
+            ShowDialogBox("Sunucuya bağlanırken bir hata oluştu.\n\n" + e);
         }
     }
 
     public void SendMessageToServer(String message)
     {
         clientOut.println(message);
+        //ShowDialogBox("Sunucuya mesaj gönderildi.");
     }
 
     public void DisconnectClient()
@@ -90,16 +105,33 @@ public class WordleClient implements Runnable
             clientIn.close();
             clientOut.close();
             clientSock.close();
+            //ShowDialogBox("Sunucu bağlantısı başarıyla sonlandırıldı.");
         }
         catch(IOException e)
         {
             //LoginActivity.ShowDialogBox("Client kapatılırken bir hata oluştu.\n" + e);
-            shouldRun = false;
+            //shouldRun = false;
+            ShowDialogBox("Client kapatılırken bir hata oluştu.\n\n" + e);
         }
     }
 
     public static void AddNewTask(WordleTask newTask)
     {
         wordleTasks.add(newTask);
+    }
+
+    public static void SetFragmentManager(FragmentManager fm)
+    {
+        fragmentManager = fm;
+    }
+
+    public static void ShowDialogBox(String msg)
+    {
+        /*new AlertDialog.Builder(context)
+                .setMessage(msg)
+                .setNeutralButton("Tamam", null)
+                .create()
+                .show();*/
+        new InfoBox(msg).show(fragmentManager, "");
     }
 }
