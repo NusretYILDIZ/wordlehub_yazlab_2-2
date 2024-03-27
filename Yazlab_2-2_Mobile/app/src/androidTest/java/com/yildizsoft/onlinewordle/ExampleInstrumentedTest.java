@@ -1,4 +1,4 @@
-package com.yildizsoft.wordle;
+package com.yildizsoft.onlinewordle;
 
 import android.content.Context;
 import androidx.test.platform.app.InstrumentationRegistry;
