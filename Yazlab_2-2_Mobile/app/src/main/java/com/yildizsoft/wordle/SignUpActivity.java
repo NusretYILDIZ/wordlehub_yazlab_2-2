@@ -93,9 +93,11 @@ public class SignUpActivity extends AppCompatActivity
 
                 if(!valid) return;
 
-                WordleClient.ShowDialogBox(username + "\n" + password);
+                //WordleClient.ShowDialogBox(username + "\n" + password);
                 WordleClient.AddNewTask(new WordleTask(WordleTaskType.SIGNUP, Arrays.asList(username, password)));
-                GoToLoginActivity();
+
+                if(WordleClient.taskSuccessful) GoToLoginActivity();
+                else WordleClient.ShowDialogBox("Üyelik oluşturma başarısız oldu. Farklı bir kullanıcı adı deneyin.");
             }
         });
     }

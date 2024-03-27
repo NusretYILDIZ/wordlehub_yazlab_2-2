@@ -73,8 +73,11 @@ public class LoginActivity extends AppCompatActivity
 
                 if(!valid) return;
 
-                WordleClient.ShowDialogBox("Username: " + username + "\nPassword: " + password);
-                WordleClient.wordleTasks.add(new WordleTask(WordleTaskType.LOGIN, Arrays.asList(username, password)));
+                //WordleClient.ShowDialogBox("Username: " + username + "\nPassword: " + password);
+                //WordleClient.wordleTasks.add(new WordleTask(WordleTaskType.LOGIN, Arrays.asList(username, password)));
+                WordleClient.AddNewTask(new WordleTask(WordleTaskType.LOGIN, Arrays.asList(username, password)));
+                if(WordleClient.taskSuccessful) WordleClient.ShowDialogBox("Oturum başarıyla açıldı.");
+                else WordleClient.ShowDialogBox("Oturum açma başarısız oldu.");
             }
         });
 

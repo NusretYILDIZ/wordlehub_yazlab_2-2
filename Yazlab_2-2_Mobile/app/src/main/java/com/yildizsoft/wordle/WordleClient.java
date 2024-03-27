@@ -1,9 +1,6 @@
 package com.yildizsoft.wordle;
 
-import android.app.AlertDialog;
-import android.content.Context;
 import androidx.fragment.app.FragmentManager;
-import kotlinx.coroutines.channels.Send;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,23 +8,26 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class WordleClient implements Runnable
 {
     public static ArrayList<WordleTask> wordleTasks = new ArrayList<>();
+    public static boolean taskSuccessful;
+
     private String serverIP;
     private int serverPort;
     private static Socket clientSock;
     private static PrintWriter clientOut;
     private static BufferedReader clientIn;
-    private boolean shouldRun;
+    //private boolean shouldRun;
     private static FragmentManager fragmentManager;
 
     public WordleClient(String serverIP, int serverPort)
     {
         this.serverIP = serverIP;
         this.serverPort = serverPort;
-        this.shouldRun = true;
+        //this.shouldRun = true;
         wordleTasks.clear();
     }
 
@@ -39,27 +39,29 @@ public class WordleClient implements Runnable
 
         while(true)
         {
-            for(WordleTask task : wordleTasks)
+            for (int i = wordleTasks.size() - 1; i >= 0; i--)
             {
-                if(task.getTask() == WordleTaskType.QUIT)
+                WordleTask task = wordleTasks.get(i);
+                if (task.getTask() == WordleTaskType.QUIT)
                 {
-                    wordleTasks.remove(task);
+                    wordleTasks.remove(i);
                     DisconnectClient();
-                    return;
+                    //return;
                 }
                 else
                 {
                     //SendMessageToServer(task.getTask().toString());
-                    StringBuilder stringBuilder = new StringBuilder();
+                    /*StringBuilder stringBuilder = new StringBuilder();
                     stringBuilder.append(task.getTask().toString());
 
                     for(String msg : task.getContents())
                     {
                         //SendMessageToServer(msg);
                         stringBuilder.append('"').append(msg);
-                    }
-                    SendMessageToServer(stringBuilder.toString());
-                    wordleTasks.remove(task);
+                    }*/
+                    //SendMessageToServer(CreateMessageFromTask(task));
+                    wordleTasks.remove(i);
+                    HandleTask(task);
                 }
             }
         }
@@ -84,10 +86,51 @@ public class WordleClient implements Runnable
         }
     }
 
-    public void SendMessageToServer(String message)
+    public static void SendMessageToServer(String message)
     {
         clientOut.println(message);
-        //ShowDialogBox("Sunucuya mesaj gönderildi.");
+        ShowDialogBox("Sunucuya mesaj gönderildi.");
+    }
+
+    public static String CreateMessageFromTask(WordleTask wordleTask)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(wordleTask.getTask().toString());
+
+        for(String s : wordleTask.getContents())
+            stringBuilder.append('"').append(s);
+
+        return stringBuilder.toString();
+    }
+
+    public static String WaitForResponse()
+    {
+        try
+        {
+            return clientIn.readLine();
+        }
+        catch(IOException e)
+        {
+            ShowDialogBox("Sunucudan cevap beklerken bir hata oluştu.\n\n" + e);
+            return null;
+        }
+    }
+
+    public static void HandleTask(WordleTask wordleTask)
+    {
+        String response;
+        if (Objects.requireNonNull(wordleTask.getTask()) == WordleTaskType.SIGNUP)
+        {
+            SendMessageToServer(CreateMessageFromTask(wordleTask));
+            response = WaitForResponse();
+            taskSuccessful = (response != null && response.equals("SIGNUP_SUCCESS"));
+        }
+        else if (wordleTask.getTask() == WordleTaskType.LOGIN)
+        {
+            SendMessageToServer(CreateMessageFromTask(wordleTask));
+            response = WaitForResponse();
+            taskSuccessful = (response != null && response.equals("LOGIN_SUCCESS"));
+        }
     }
 
     public void DisconnectClient()
@@ -118,6 +161,8 @@ public class WordleClient implements Runnable
     public static void AddNewTask(WordleTask newTask)
     {
         wordleTasks.add(newTask);
+        //HandleTask(newTask);
+        //wordleTasks.remove(newTask);
     }
 
     public static void SetFragmentManager(FragmentManager fm)

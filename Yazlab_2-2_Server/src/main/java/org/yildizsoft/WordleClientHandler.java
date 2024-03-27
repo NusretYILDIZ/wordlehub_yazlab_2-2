@@ -124,15 +124,25 @@ public class WordleClientHandler implements Runnable
                 {
                     clientWriter.write("SIGNUP_FAIL_USER_ALREADY_EXISTS");
                 }
+                else if(res == 0)
+                {
+                    clientWriter.write("SIGNUP_SUCCESS");
+                }
+                else
+                {
+                    clientWriter.write("SIGNUP_FAIL_OTHER");
+                }
                 break;
 
             case "LOGIN":
                 if(MongoManager.UserExists(tokens))
                 {
+                    clientWriter.write("LOGIN_SUCCESS");
                     System.out.println("ayca_" + this.id + " oturum açtı.");
                 }
                 else
                 {
+                    clientWriter.write("LOGIN_FAILURE");
                     System.err.println("ayca_" + this.id + "'in oturum bilgileri geçersiz.");
                 }
                 break;
