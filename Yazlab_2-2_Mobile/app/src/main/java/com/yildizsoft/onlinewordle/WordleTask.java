@@ -6,11 +6,13 @@ public class WordleTask
 {
     private List<String> contents;
     private WordleTaskType task;
+    private boolean isProcessing;
 
     public WordleTask(WordleTaskType task, List<String> contents)
     {
         this.contents = contents;
         this.task = task;
+        this.isProcessing = false;
     }
 
     public List<String> getContents()
@@ -31,5 +33,15 @@ public class WordleTask
     public void setTask(WordleTaskType task)
     {
         this.task = task;
+    }
+
+    public boolean isProcessing()
+    {
+        return isProcessing;
+    }
+
+    public void setProcessing(boolean processing)
+    {
+        isProcessing = processing;
     }
 }

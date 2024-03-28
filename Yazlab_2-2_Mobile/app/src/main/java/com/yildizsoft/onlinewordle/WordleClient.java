@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -13,28 +14,32 @@ import java.util.Objects;
 public class WordleClient implements Runnable
 {
     public static ArrayList<WordleTask> wordleTasks = new ArrayList<>();
+    public static ArrayList<WordleTaskResult> wordleTaskResults = new ArrayList<>();
     public static boolean taskSuccessful;
+    public static String taskStatus;
 
-    private String serverIP;
-    private int serverPort;
+    private static String serverIP;
+    private static int serverPort;
     private static Socket clientSock;
     private static PrintWriter clientOut;
     private static BufferedReader clientIn;
     //private boolean shouldRun;
     private static FragmentManager fragmentManager;
 
-    public WordleClient(String serverIP, int serverPort)
+    public WordleClient(String ip, int port)
     {
-        this.serverIP = serverIP;
-        this.serverPort = serverPort;
+        serverIP = ip;
+        serverPort = port;
         //this.shouldRun = true;
         wordleTasks.clear();
+        wordleTaskResults.clear();
+        taskStatus = null;
     }
 
     @Override
     public void run()
     {
-        StartClient();
+        //StartClient();
         //ShowDialogBox("Sunucuya başarıyla bağlanıldı.");
 
         while(true)
@@ -46,22 +51,14 @@ public class WordleClient implements Runnable
                 {
                     wordleTasks.remove(i);
                     DisconnectClient();
-                    //return;
+                    StopClient();
+                    return;
                 }
                 else
                 {
-                    //SendMessageToServer(task.getTask().toString());
-                    /*StringBuilder stringBuilder = new StringBuilder();
-                    stringBuilder.append(task.getTask().toString());
-
-                    for(String msg : task.getContents())
-                    {
-                        //SendMessageToServer(msg);
-                        stringBuilder.append('"').append(msg);
-                    }*/
-                    //SendMessageToServer(CreateMessageFromTask(task));
-                    wordleTasks.remove(i);
+                    wordleTasks.get(i).setProcessing(true);
                     HandleTask(task);
+                    wordleTasks.remove(i);
                 }
             }
         }
@@ -69,20 +66,28 @@ public class WordleClient implements Runnable
         //StopClient();
     }
 
-    public void StartClient()
+    public static void StartClient()
     {
         try
         {
-            clientSock = new Socket(serverIP, serverPort);
+            //clientSock = new Socket(serverIP, serverPort);
+            clientSock = new Socket();
+            clientSock.connect(new InetSocketAddress(serverIP, serverPort), 2000);
             clientOut = new PrintWriter(clientSock.getOutputStream(), true);
             clientIn = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
             //ShowDialogBox("Sunucuya başarıyla bağlanıldı.");
+            System.out.println("Successfully connected to the server.");
+            wordleTaskResults.add(WordleTaskResult.START_SERVER_SUCCESS);
+            taskStatus = "START_SERVER_SUCCESS";
         }
         catch (IOException e)
         {
             //LoginActivity.ShowDialogBox("Sunucuya bağlanırken hata oluştu.\n" + e);
             //shouldRun = false;
-            ShowDialogBox("Sunucuya bağlanırken bir hata oluştu.\n\n" + e);
+            System.out.println("Failed connecting to the server.");
+            wordleTaskResults.add(WordleTaskResult.START_SERVER_FAIL);
+            taskStatus = "START_SERVER_FAIL";
+            //ShowDialogBox("Sunucuya bağlanırken bir hata oluştu.\n\n" + e);
         }
     }
 
@@ -119,27 +124,39 @@ public class WordleClient implements Runnable
     public static void HandleTask(WordleTask wordleTask)
     {
         String response;
-        if (Objects.requireNonNull(wordleTask.getTask()) == WordleTaskType.SIGNUP)
+
+        switch(wordleTask.getTask())
         {
+        case START_SERVER:
+            System.out.println("Starting client...");
+            StartClient();
+            break;
+
+        case SIGNUP:
             SendMessageToServer(CreateMessageFromTask(wordleTask));
             response = WaitForResponse();
-            taskSuccessful = (response != null && response.equals("SIGNUP_SUCCESS"));
-        }
-        else if (wordleTask.getTask() == WordleTaskType.LOGIN)
-        {
+            //taskSuccessful = (response != null && response.equals("SIGNUP_SUCCESS"));
+            if(response != null && response.equals("SIGNUP_SUCCESS")) wordleTaskResults.add(WordleTaskResult.SIGNUP_SUCCESS);
+            else wordleTaskResults.add(WordleTaskResult.SIGNUP_FAIL);
+            break;
+
+        case LOGIN:
             SendMessageToServer(CreateMessageFromTask(wordleTask));
             response = WaitForResponse();
-            taskSuccessful = (response != null && response.equals("LOGIN_SUCCESS"));
+            //taskSuccessful = (response != null && response.equals("LOGIN_SUCCESS"));
+            if(response != null && response.equals("LOGIN_SUCCESS")) wordleTaskResults.add(WordleTaskResult.LOGIN_SUCCESS);
+            else wordleTaskResults.add(WordleTaskResult.LOGIN_FAIL);
+            break;
         }
     }
 
-    public void DisconnectClient()
+    public static void DisconnectClient()
     {
-        SendMessageToServer("quit");
+        if(clientOut != null) SendMessageToServer("quit");
         //LoginActivity.ShowDialogBox("Bağlantı kesiliyor.");
     }
 
-    public void StopClient()
+    public static void StopClient()
     {
         wordleTasks.clear();
 
@@ -155,6 +172,12 @@ public class WordleClient implements Runnable
             //LoginActivity.ShowDialogBox("Client kapatılırken bir hata oluştu.\n" + e);
             //shouldRun = false;
             ShowDialogBox("Client kapatılırken bir hata oluştu.\n\n" + e);
+            System.err.println("Client kapatılırken bir hata oluştu.\n\n" + e);
+        }
+        catch(NullPointerException e)
+        {
+            ShowDialogBox("Client kapatılırken bir hata oluştu.\n\n" + e);
+            System.err.println("Client kapatılırken bir hata oluştu.\n\n" + e);
         }
     }
 
@@ -163,6 +186,21 @@ public class WordleClient implements Runnable
         wordleTasks.add(newTask);
         //HandleTask(newTask);
         //wordleTasks.remove(newTask);
+    }
+
+    public static WordleTaskResult GetLastTaskResult()
+    {
+        return wordleTaskResults.get(wordleTaskResults.size() - 1);
+    }
+
+    public static void RemoveLastTaskResult()
+    {
+        wordleTaskResults.remove(wordleTaskResults.size() - 1);
+    }
+
+    public static boolean IsTaskResultsEmpty()
+    {
+        return wordleTaskResults.isEmpty();
     }
 
     public static void SetFragmentManager(FragmentManager fm)
@@ -177,6 +215,6 @@ public class WordleClient implements Runnable
                 .setNeutralButton("Tamam", null)
                 .create()
                 .show();*/
-        new InfoBox(msg).show(fragmentManager, "");
+        //new InfoBox(msg, InfoBox.INFO).show(fragmentManager, "");
     }
 }
