@@ -1,4 +1,4 @@
-package com.yildizsoft.onlinewordle;
+package com.yildizsoft.onlinewordle.signup;
 
 import android.content.Intent;
 import android.text.SpannableString;
@@ -9,6 +9,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import com.yildizsoft.onlinewordle.login.LoginActivity;
+import com.yildizsoft.onlinewordle.R;
+import com.yildizsoft.onlinewordle.client.WordleClient;
+import com.yildizsoft.onlinewordle.client.WordleTask;
+import com.yildizsoft.onlinewordle.client.WordleTaskType;
 
 import java.util.Arrays;
 

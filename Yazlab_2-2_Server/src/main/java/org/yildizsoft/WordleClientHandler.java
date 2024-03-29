@@ -86,7 +86,7 @@ public class WordleClientHandler implements Runnable
             }
             catch(IOException e)
             {
-                System.err.println(this.id + " ID'li client'tan veri okunurken bir hata oluştu.\n\n" + e);
+                System.err.println(this.id + " ID'li client'tan veri okunurken bir hata oluştu.\n" + e);
                 shouldContinue = false;
             }
         }
@@ -105,7 +105,7 @@ public class WordleClientHandler implements Runnable
         }
         catch(IOException e)
         {
-            System.err.println(this.id + " ID'li client bağlantısı sonlandırılırken bir hata oluştu.\n\n" + e);
+            System.err.println(this.id + " ID'li client bağlantısı sonlandırılırken bir hata oluştu.\n" + e);
         }
         System.out.println(this.id + " ID'li client bağlantısı sonlandırıldı.");
     }
@@ -138,12 +138,12 @@ public class WordleClientHandler implements Runnable
                 if(MongoManager.UserExists(tokens))
                 {
                     clientWriter.write("LOGIN_SUCCESS");
-                    System.out.println("ayca_" + this.id + " oturum açtı.");
+                    System.out.println(this.id + " ID'li client \"" + tokens.getFirst() + "\" kullanıcı adıyla oturum açtı.");
                 }
                 else
                 {
                     clientWriter.write("LOGIN_FAILURE");
-                    System.err.println("ayca_" + this.id + "'in oturum bilgileri geçersiz.");
+                    System.err.println(this.id + " ID'li client oturum açamadı.");
                 }
                 break;
         }

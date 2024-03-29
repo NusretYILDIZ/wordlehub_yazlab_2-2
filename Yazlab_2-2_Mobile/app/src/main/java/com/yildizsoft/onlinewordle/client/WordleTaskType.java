@@ -1,4 +1,4 @@
-package com.yildizsoft.onlinewordle;
+package com.yildizsoft.onlinewordle.client;
 
 public enum WordleTaskType
 {

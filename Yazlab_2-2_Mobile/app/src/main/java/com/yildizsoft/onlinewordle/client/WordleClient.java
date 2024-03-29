@@ -1,6 +1,4 @@
-package com.yildizsoft.onlinewordle;
-
-import androidx.fragment.app.FragmentManager;
+package com.yildizsoft.onlinewordle.client;
 
 import java.io.BufferedReader;
 import java.io.IOException;

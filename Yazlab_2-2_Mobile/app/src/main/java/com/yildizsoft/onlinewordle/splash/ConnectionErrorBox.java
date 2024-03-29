@@ -1,4 +1,4 @@
-package com.yildizsoft.onlinewordle;
+package com.yildizsoft.onlinewordle.splash;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -7,17 +7,18 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import com.yildizsoft.onlinewordle.client.WordleClient;
 import org.jetbrains.annotations.NotNull;
 
 public class ConnectionErrorBox extends DialogFragment
 {
     private       Thread               splashMain;
-    private final SplashScreenActivity splashScreenActivity;
+    private final ServerSelectActivity serverSelectActivity;
 
-    public ConnectionErrorBox(Thread splashMain, SplashScreenActivity splashScreenActivity)
+    public ConnectionErrorBox(Thread splashMain, ServerSelectActivity serverSelectActivity)
     {
-        this.splashMain = splashMain;
-        this.splashScreenActivity = splashScreenActivity;
+        this.splashMain           = splashMain;
+        this.serverSelectActivity = serverSelectActivity;
     }
 
     @NonNull
@@ -32,19 +33,21 @@ public class ConnectionErrorBox extends DialogFragment
             public void onClick(DialogInterface dialog, int which)
             {
                 dialog.dismiss();
-                splashMain = new Thread(new SplashScreenRunnable(splashScreenActivity));
-                splashMain.start();
+                //splashMain = new Thread(new ServerSelectRunnable(serverSelectActivity));
+                //splashMain.start();
+                serverSelectActivity.runOnUiThread(serverSelectActivity::RetryConnecting);
             }
         });
-        builder.setNegativeButton("Çık", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton("İptal", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
                 dialog.dismiss();
                 WordleClient.StopClient();
-                splashScreenActivity.runOnUiThread(splashScreenActivity::finish);
+                //splashScreenActivity.runOnUiThread(splashScreenActivity::finish);
             }
         });
+        setCancelable(false);
         return builder.create();
     }
 }
