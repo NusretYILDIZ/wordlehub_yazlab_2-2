@@ -28,12 +28,6 @@ public class SignUpActivity extends AppCompatActivity
         str.setSpan(new UnderlineSpan(), 25, str.length() - 1, 0);
         login.setText(str);
 
-        WordleClient.SetFragmentManager(getSupportFragmentManager());
-
-        //final String[] username = new String[1];
-        //final String[] password = new String[1];
-        //final String[] passwordConfirm = new String[1];
-
         EditText usernameEditText = findViewById(R.id.loginUsernameInput);
         EditText passwordEditText = findViewById(R.id.loginPasswordInput);
         EditText passwordConfirmEditText = findViewById(R.id.loginPasswordConfirmInput);
@@ -97,7 +91,7 @@ public class SignUpActivity extends AppCompatActivity
                 WordleClient.AddNewTask(new WordleTask(WordleTaskType.SIGNUP, Arrays.asList(username, password)));
 
                 if(WordleClient.taskSuccessful) GoToLoginActivity();
-                else WordleClient.ShowDialogBox("Üyelik oluşturma başarısız oldu. Farklı bir kullanıcı adı deneyin.");
+                //else WordleClient.ShowDialogBox("Üyelik oluşturma başarısız oldu. Farklı bir kullanıcı adı deneyin.");
             }
         });
     }
@@ -107,11 +101,4 @@ public class SignUpActivity extends AppCompatActivity
         startActivity(new Intent(getApplicationContext(), LoginActivity.class));
         finish();
     }
-
-    /*@Override
-    protected void onDestroy()
-    {
-        super.onDestroy();
-        WordleClient.AddNewTask(new WordleTask(WordleTaskType.QUIT, null));
-    }*/
 }

@@ -14,7 +14,6 @@ import java.util.Arrays;
 
 public class LoginActivity extends AppCompatActivity
 {
-    //private static FragmentManager fragmentManager;
     String username;
     String password;
 
@@ -29,13 +28,7 @@ public class LoginActivity extends AppCompatActivity
         str.setSpan(new UnderlineSpan(), 22, str.length() - 1, 0);
         signUpText.setText(str);
 
-        WordleClient.SetFragmentManager(getSupportFragmentManager());
-
-        //final String[] username = new String[1];
-        //final String[] password = new String[1];
-
         Button loginButton = findViewById(R.id.loginButton);
-        //Button signUpButton = findViewById(R.id.signUpButton);
         EditText usernameEditText = findViewById(R.id.loginUsernameInput);
         EditText passwordEditText = findViewById(R.id.loginPasswordInput);
 
@@ -73,11 +66,9 @@ public class LoginActivity extends AppCompatActivity
 
                 if(!valid) return;
 
-                //WordleClient.ShowDialogBox("Username: " + username + "\nPassword: " + password);
-                //WordleClient.wordleTasks.add(new WordleTask(WordleTaskType.LOGIN, Arrays.asList(username, password)));
                 WordleClient.AddNewTask(new WordleTask(WordleTaskType.LOGIN, Arrays.asList(username, password)));
-                if(WordleClient.taskSuccessful) WordleClient.ShowDialogBox("Oturum başarıyla açıldı.");
-                else WordleClient.ShowDialogBox("Oturum açma başarısız oldu.");
+                //if(WordleClient.taskSuccessful) WordleClient.ShowDialogBox("Oturum başarıyla açıldı.");
+                //else WordleClient.ShowDialogBox("Oturum açma başarısız oldu.");
             }
         });
 
@@ -91,17 +82,4 @@ public class LoginActivity extends AppCompatActivity
             }
         });
     }
-
-    /*@Override
-    protected void onDestroy()
-    {
-        super.onDestroy();
-        WordleClient.wordleTasks.add(new WordleTask(WordleTaskType.QUIT, null));
-    }*/
-
-    /*@Deprecated
-    public static void ShowDialogBox(String msg)
-    {
-        new InfoBox(msg).show(fragmentManager, "info");
-    }*/
 }

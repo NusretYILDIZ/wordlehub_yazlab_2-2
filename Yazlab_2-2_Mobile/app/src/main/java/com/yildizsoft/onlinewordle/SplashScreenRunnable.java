@@ -1,18 +1,12 @@
 package com.yildizsoft.onlinewordle;
 
-import android.app.Activity;
-import android.os.Handler;
-import android.os.Message;
-
 public class SplashScreenRunnable implements Runnable
 {
     private final SplashScreenActivity splashActivity;
-    private final Handler handler;
 
-    public SplashScreenRunnable(SplashScreenActivity activity, Handler handler)
+    public SplashScreenRunnable(SplashScreenActivity activity)
     {
         this.splashActivity = activity;
-        this.handler = handler;
     }
 
     @Override
@@ -23,45 +17,37 @@ public class SplashScreenRunnable implements Runnable
         {
             System.out.println("Inside of run.");
 
-            if(WordleClient.taskStatus != null)
+            /*if(WordleClient.taskStatus != null)
             {
                 if(WordleClient.taskStatus.equals("START_SERVER_SUCCESS"))
                 {
                     WordleClient.taskStatus = null;
-                    //splashActivity.runOnUiThread(splashActivity::GoToLoginActivity);
-                    Message msg = Message.obtain();
-                    msg.what = 1;
-                    handler.sendMessage(msg);
-                    //splashActivity.GoToLoginActivity();
+                    splashActivity.runOnUiThread(splashActivity::GoToLoginActivity);
                     return;
                 }
                 else
                 {
                     WordleClient.taskStatus = null;
-                    Message msg = Message.obtain();
-                    msg.what = 0;
-                    handler.sendMessage(msg);
-                    //splashActivity.runOnUiThread(splashActivity::ConnectionErrorDialog);
-                    //splashActivity.ConnectionErrorDialog();
+                    splashActivity.runOnUiThread(splashActivity::ConnectionErrorDialog);
                     return;
                 }
-            }
+            }*/
 
-            /*if(WordleClient.IsTaskResultsEmpty())
+            if(WordleClient.IsTaskResultsEmpty())
             {
             }
             else if(WordleClient.GetLastTaskResult() == WordleTaskResult.START_SERVER_SUCCESS)
             {
                 WordleClient.RemoveLastTaskResult();
-                splashActivity.GoToLoginActivity();
+                splashActivity.runOnUiThread(splashActivity::GoToLoginActivity);
                 return;
             }
             else
             {
                 WordleClient.RemoveLastTaskResult();
-                splashActivity.ConnectionErrorDialog();
+                splashActivity.runOnUiThread(splashActivity::ConnectionErrorDialog);
                 return;
-            }*/
+            }
 
             try
             {
