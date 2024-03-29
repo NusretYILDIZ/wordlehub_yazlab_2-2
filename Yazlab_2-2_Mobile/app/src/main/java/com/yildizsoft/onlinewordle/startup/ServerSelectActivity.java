@@ -1,4 +1,4 @@
-package com.yildizsoft.onlinewordle.splash;
+package com.yildizsoft.onlinewordle.startup;
 
 import android.content.Intent;
 import android.view.View;
@@ -48,7 +48,14 @@ public class ServerSelectActivity extends AppCompatActivity
             }
         });
     }
-
+    
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        ServerSelectRunnable.Stop();
+    }
+    
     public void RetryConnecting()
     {
         waitConnectionDialog.Show();

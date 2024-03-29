@@ -11,14 +11,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.yildizsoft.onlinewordle.login.LoginActivity;
 import com.yildizsoft.onlinewordle.R;
-import com.yildizsoft.onlinewordle.client.WordleClient;
-import com.yildizsoft.onlinewordle.client.WordleTask;
-import com.yildizsoft.onlinewordle.client.WordleTaskType;
-
-import java.util.Arrays;
 
 public class SignUpActivity extends AppCompatActivity
 {
+    protected SignUpActivity signUpActivity;
     String username;
     String password;
 
@@ -27,6 +23,9 @@ public class SignUpActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+        
+        signUpActivity = this;
+        
         TextView login = findViewById(R.id.loginText);
 
         SpannableString str = new SpannableString(getString(R.string.login_if_has_account));
@@ -87,23 +86,23 @@ public class SignUpActivity extends AppCompatActivity
                 else
                 {
                     passwordMatch.setVisibility(View.GONE);
-                    //passwordConfirm[0] = passwordConfirmEditText.getText().toString();
                 }
 
                 if(!valid) return;
 
-                //WordleClient.ShowDialogBox(username + "\n" + password);
-                WordleClient.AddNewTask(new WordleTask(WordleTaskType.SIGNUP, Arrays.asList(username, password)));
-
-                if(WordleClient.taskSuccessful) GoToLoginActivity();
-                //else WordleClient.ShowDialogBox("Üyelik oluşturma başarısız oldu. Farklı bir kullanıcı adı deneyin.");
+                new Thread(new SignUpRunnable(signUpActivity, username, password)).start();
             }
         });
     }
 
-    protected void GoToLoginActivity()
+    public void GoToLoginActivity()
     {
         startActivity(new Intent(getApplicationContext(), LoginActivity.class));
         finish();
+    }
+    
+    public void SignUpFailedDialog(int failCode)
+    {
+        new SignUpFailedDialog(failCode).show(getSupportFragmentManager(), "signUpFail");
     }
 }

@@ -8,21 +8,21 @@ import java.util.List;
 
 public class WordleClientHandler implements Runnable
 {
-    private Socket clientSocket;
-    //private PrintWriter clientWriter;
-    private BufferedReader clientReader;
-    private BufferedWriter clientWriter;
-    private boolean shouldContinue;
-    private long id;
-    private int failCount;
-
+    private final Socket         clientSocket;
+    private       BufferedReader clientReader;
+    private       BufferedWriter clientWriter;
+    private       PrintWriter    clientPrinter;
+    private       boolean        shouldContinue;
+    private       long           id;
+    private       int            failCount;
+    
     public WordleClientHandler(Socket socket)
     {
-        this.clientSocket = socket;
+        this.clientSocket   = socket;
         this.shouldContinue = true;
-        this.failCount = 0;
+        this.failCount      = 0;
     }
-
+    
     @Override
     public void run()
     {
@@ -30,30 +30,21 @@ public class WordleClientHandler implements Runnable
         System.out.println("Yeni bir client bağlandı. Client ID: " + this.id);
         try
         {
-            //clientWriter = new PrintWriter(clientSocket.getOutputStream(), true);
-            clientWriter = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-            clientReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            clientPrinter = new PrintWriter(clientSocket.getOutputStream(), true);
+            clientWriter  = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+            clientReader  = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         }
-        catch (IOException e)
+        catch(IOException e)
         {
             System.err.println("Client bağlantısında bir hata oluştu.\n\n" + e);
             shouldContinue = false;
         }
-
+        
         String line;
         while(shouldContinue)
         {
             try
             {
-                /*while((line = clientReader.readLine()) != null)
-                {
-                    if(line.equalsIgnoreCase("quit"))
-                    {
-                        shouldContinue = false;
-                        break;
-                    }
-                    else HandleClientRequest(line);
-                }*/
                 try
                 {
                     clientWriter.write("mrb");
@@ -61,7 +52,7 @@ public class WordleClientHandler implements Runnable
                 catch(IOException e)
                 {
                     this.failCount++;
-
+                    
                     if(this.failCount >= 3)
                     {
                         System.err.println(this.id + " ID'li client'ın bağlantısı kopmuş olabilir.");
@@ -69,7 +60,7 @@ public class WordleClientHandler implements Runnable
                         return;
                     }
                 }
-
+                
                 if(this.failCount == 0)
                 {
                     line = clientReader.readLine();
@@ -90,16 +81,17 @@ public class WordleClientHandler implements Runnable
                 shouldContinue = false;
             }
         }
-
+        
         Disconnect();
     }
-
+    
     public void Disconnect()
     {
         System.out.println(this.id + " ID'li client bağlantısı sonlandırılıyor...");
         try
         {
             clientReader.close();
+            clientPrinter.close();
             clientWriter.close();
             clientSocket.close();
         }
@@ -109,43 +101,49 @@ public class WordleClientHandler implements Runnable
         }
         System.out.println(this.id + " ID'li client bağlantısı sonlandırıldı.");
     }
-
-    public void HandleClientRequest(String req) throws IOException {
+    
+    public void HandleClientRequest(String req) throws IOException
+    {
         System.out.println(req);
         List<String> tokens = new ArrayList<>(Arrays.asList(req.split("\"")));
-        String task = tokens.getFirst();
+        String       task   = tokens.getFirst();
         tokens.removeFirst();
-
+        
         switch(task)
         {
-            case "SIGNUP":
-                int res = MongoManager.AddUser(tokens);
-                if(res == 1)
-                {
-                    clientWriter.write("SIGNUP_FAIL_USER_ALREADY_EXISTS");
-                }
-                else if(res == 0)
-                {
-                    clientWriter.write("SIGNUP_SUCCESS");
-                }
-                else
-                {
-                    clientWriter.write("SIGNUP_FAIL_OTHER");
-                }
-                break;
-
-            case "LOGIN":
-                if(MongoManager.UserExists(tokens))
-                {
-                    clientWriter.write("LOGIN_SUCCESS");
-                    System.out.println(this.id + " ID'li client \"" + tokens.getFirst() + "\" kullanıcı adıyla oturum açtı.");
-                }
-                else
-                {
-                    clientWriter.write("LOGIN_FAILURE");
-                    System.err.println(this.id + " ID'li client oturum açamadı.");
-                }
-                break;
+        case "SIGNUP":
+            int res = MongoManager.AddUser(tokens);
+            if(res == 1)
+            {
+                clientPrinter.println("SIGNUP_FAIL_USER_ALREADY_EXISTS");
+            }
+            else if(res == 0)
+            {
+                clientPrinter.println("SIGNUP_SUCCESS");
+            }
+            else
+            {
+                clientPrinter.println("SIGNUP_FAIL_OTHER");
+            }
+            break;
+        
+        case "LOGIN":
+            if(!MongoManager.UsernameExists(tokens.getFirst()))
+            {
+                clientPrinter.println("LOGIN_FAIL_USERNAME_NOT_FOUND");
+                System.err.println(this.id + " ID'li client yanlış kullanıcı adı girdi ve oturum açamadı.");
+            }
+            else if(!MongoManager.UserExists(tokens.getFirst(), tokens.get(1)))
+            {
+                clientPrinter.println("LOGIN_FAIL_WRONG_PASSWORD");
+                System.err.println(this.id + " ID'li client yanlış şifre girdi ve oturum açamadı.");
+            }
+            else
+            {
+                clientPrinter.println("LOGIN_SUCCESS");
+                System.out.println(this.id + " ID'li client \"" + tokens.getFirst() + "\" kullanıcı adıyla oturum açtı.");
+            }
+            break;
         }
     }
 }

@@ -10,15 +10,13 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.yildizsoft.onlinewordle.R;
-import com.yildizsoft.onlinewordle.client.WordleClient;
-import com.yildizsoft.onlinewordle.client.WordleTask;
-import com.yildizsoft.onlinewordle.client.WordleTaskType;
 import com.yildizsoft.onlinewordle.signup.SignUpActivity;
 
 import java.util.Arrays;
 
 public class LoginActivity extends AppCompatActivity
 {
+    protected LoginActivity loginActivity;
     String username;
     String password;
 
@@ -27,6 +25,9 @@ public class LoginActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        
+        loginActivity = this;
+        
         TextView signUpText = findViewById(R.id.signUpText);
 
         SpannableString str = new SpannableString(getString(R.string.sign_up_if_dont_have_acc));
@@ -70,10 +71,8 @@ public class LoginActivity extends AppCompatActivity
                 }
 
                 if(!valid) return;
-
-                WordleClient.AddNewTask(new WordleTask(WordleTaskType.LOGIN, Arrays.asList(username, password)));
-                //if(WordleClient.taskSuccessful) WordleClient.ShowDialogBox("Oturum başarıyla açıldı.");
-                //else WordleClient.ShowDialogBox("Oturum açma başarısız oldu.");
+                
+                new Thread(new LoginRunnable(loginActivity, username, password)).start();
             }
         });
 
@@ -86,5 +85,17 @@ public class LoginActivity extends AppCompatActivity
                 finish();
             }
         });
+    }
+    
+    public void LoginFailedDialog(int failCode)
+    {
+        new LoginFailedDialog(failCode).show(getSupportFragmentManager(), "loginFail");
+    }
+    
+    @Override
+    protected void onDestroy()
+    {
+        LoginRunnable.Stop();
+        super.onDestroy();
     }
 }

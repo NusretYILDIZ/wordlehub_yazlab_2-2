@@ -8,7 +8,7 @@
         android:orientation="vertical"
         android:gravity="center"
         android:padding="50dp"
-        tools:context=".splash.ServerSelectActivity">
+        tools:context=".startup.ServerSelectActivity">
 
     <TextView
             android:layout_width="match_parent"

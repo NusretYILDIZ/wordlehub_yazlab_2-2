@@ -12,6 +12,7 @@ public class WordleClient implements Runnable
 {
     public static ArrayList<WordleTask> wordleTasks = new ArrayList<>();
     public static ArrayList<WordleTaskResult> wordleTaskResults = new ArrayList<>();
+    //public static WordleTaskResult wordleTaskResult;
     public static boolean taskSuccessful;
     public static String taskStatus;
 
@@ -29,6 +30,7 @@ public class WordleClient implements Runnable
         shouldRun = true;
         wordleTasks.clear();
         wordleTaskResults.clear();
+        //wordleTaskResult = null;
         taskStatus = null;
     }
 
@@ -47,12 +49,13 @@ public class WordleClient implements Runnable
                     StopClient();
                     shouldRun = false;
                 }
-                else if(!task.isProcessing())
+                else //if(!task.isProcessing())
                 {
                     wordleTasks.get(i).setProcessing(true);
                     HandleTask(task);
                     wordleTasks.remove(i);
                 }
+                break;
             }
 
             try
@@ -76,13 +79,13 @@ public class WordleClient implements Runnable
             clientIn = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
 
             System.out.println("Successfully connected to the server.");
-            wordleTaskResults.add(WordleTaskResult.START_SERVER_SUCCESS);
+            AddTaskResult(WordleTaskResult.START_SERVER_SUCCESS);
             taskStatus = "START_SERVER_SUCCESS";
         }
         catch (IOException e)
         {
             System.out.println("Failed connecting to the server.");
-            wordleTaskResults.add(WordleTaskResult.START_SERVER_FAIL);
+            AddTaskResult(WordleTaskResult.START_SERVER_FAIL);
             taskStatus = "START_SERVER_FAIL";
         }
     }
@@ -129,15 +132,38 @@ public class WordleClient implements Runnable
         case SIGNUP:
             SendMessageToServer(CreateMessageFromTask(wordleTask));
             response = WaitForResponse();
-            if(response != null && response.equals("SIGNUP_SUCCESS")) wordleTaskResults.add(WordleTaskResult.SIGNUP_SUCCESS);
-            else wordleTaskResults.add(WordleTaskResult.SIGNUP_FAIL);
+            if(response != null && response.equals("SIGNUP_SUCCESS")) AddTaskResult(WordleTaskResult.SIGNUP_SUCCESS);
+            else
+            {
+                if(response == null) AddTaskResult(WordleTaskResult.SIGNUP_FAIL_OTHER);
+                else if(response.equals("SIGNUP_FAIL_USER_ALREADY_EXISTS")) AddTaskResult(WordleTaskResult.SIGNUP_FAIL_USER_ALREADY_EXISTS);
+                else AddTaskResult(WordleTaskResult.SIGNUP_FAIL_OTHER);
+            }
             break;
 
         case LOGIN:
             SendMessageToServer(CreateMessageFromTask(wordleTask));
             response = WaitForResponse();
-            if(response != null && response.equals("LOGIN_SUCCESS")) wordleTaskResults.add(WordleTaskResult.LOGIN_SUCCESS);
-            else wordleTaskResults.add(WordleTaskResult.LOGIN_FAIL);
+            System.out.println("Response: " + response);
+            
+            if(response != null && response.equals("LOGIN_SUCCESS"))
+            {
+                taskStatus = response;
+                AddTaskResult(WordleTaskResult.LOGIN_SUCCESS);
+            }
+            else
+            {
+                taskStatus = response;
+                if(response == null) AddTaskResult(WordleTaskResult.LOGIN_FAIL_OTHER);
+                
+                else if(response.equals("LOGIN_FAIL_USERNAME_NOT_FOUND"))
+                    AddTaskResult(WordleTaskResult.LOGIN_FAIL_USERNAME_NOT_FOUND);
+                
+                else if(response.equals("LOGIN_FAIL_WRONG_PASSWORD"))
+                    AddTaskResult(WordleTaskResult.LOGIN_FAIL_WRONG_PASSWORD);
+                
+                else AddTaskResult(WordleTaskResult.LOGIN_FAIL_OTHER);
+            }
             break;
         }
     }
@@ -152,6 +178,7 @@ public class WordleClient implements Runnable
         shouldRun = false;
         wordleTasks.clear();
         wordleTaskResults.clear();
+        //wordleTaskResult = null;
 
         try
         {
@@ -169,19 +196,28 @@ public class WordleClient implements Runnable
     {
         wordleTasks.add(newTask);
     }
+    
+    public static void AddTaskResult(WordleTaskResult result)
+    {
+        //wordleTaskResult = result;
+        wordleTaskResults.add(result);
+    }
 
     public static WordleTaskResult GetLastTaskResult()
     {
         return wordleTaskResults.get(wordleTaskResults.size() - 1);
+        //return wordleTaskResult;
     }
 
     public static void RemoveLastTaskResult()
     {
         wordleTaskResults.remove(wordleTaskResults.size() - 1);
+        //wordleTaskResult = null;
     }
 
     public static boolean IsTaskResultsEmpty()
     {
         return wordleTaskResults.isEmpty();
+        //return wordleTaskResult == null;
     }
 }

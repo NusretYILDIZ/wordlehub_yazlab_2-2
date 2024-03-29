@@ -3,43 +3,41 @@ package org.yildizsoft;
 import com.mongodb.MongoException;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.result.InsertOneResult;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
-import javax.print.Doc;
 import java.util.List;
 
 public class MongoManager
 {
-    private static final String mongoUri = "mongodb://localhost:27017";
-    private static MongoClient mongoClient;
-    private static MongoDatabase mongoDatabase;
-
+    private static final String        mongoUri = "mongodb://localhost:27017";
+    private static       MongoClient   mongoClient;
+    private static       MongoDatabase mongoDatabase;
+    
     public static void Start() throws MongoException
     {
-        mongoClient = MongoClients.create(mongoUri);
+        mongoClient   = MongoClients.create(mongoUri);
         mongoDatabase = mongoClient.getDatabase("yazlab_2-2");
     }
-
+    
     public static void Stop()
     {
         mongoClient.close();
     }
-
+    
     public static void AddEntry(String collection, List<String[]> entry)
     {
         try
         {
             MongoCollection<Document> col = mongoDatabase.getCollection(collection);
-            Document doc = new Document();
+            Document                  doc = new Document();
             doc.append("_id", new ObjectId());
-
-            for (String[] contents : entry)
+            
+            for(String[] contents : entry)
             {
                 doc.append(contents[0], contents[1]);
             }
-
+            
             col.insertOne(doc);
         }
         catch(MongoException e)
@@ -47,17 +45,17 @@ public class MongoManager
             System.err.println('"' + entry.toString() + "\" veritabanına kaydedilemedi.\n" + e);
         }
     }
-
+    
     public static int AddUser(List<String> entry)
     {
         try
         {
-            MongoCollection<Document> col = mongoDatabase.getCollection("users");
-            Document document = new Document();
+            MongoCollection<Document> col      = mongoDatabase.getCollection("users");
+            Document                  document = new Document();
             document.append("_id", new ObjectId());
             document.append("username", entry.getFirst());
             document.append("password", entry.get(1));
-
+            
             FindIterable<Document> users = col.find(Filters.exists("username"));
             for(Document d : users)
             {
@@ -67,7 +65,7 @@ public class MongoManager
                     return 1;
                 }
             }
-
+            
             col.insertOne(document);
             System.out.println("Kullanıcı başarıyla eklendi: " + document.toJson());
             return 0;
@@ -78,17 +76,17 @@ public class MongoManager
             return -1;
         }
     }
-
-    public static boolean UserExists(List<String> entry)
+    
+    public static boolean UserExists(String username, String password)
     {
         try
         {
-            MongoCollection<Document> col = mongoDatabase.getCollection("users");
-            FindIterable<Document> users = col.find(Filters.exists("username"));
-
+            MongoCollection<Document> col   = mongoDatabase.getCollection("users");
+            FindIterable<Document>    users = col.find(Filters.exists("username"));
+            
             for(Document user : users)
             {
-                if(user.getString("username").equals(entry.getFirst()) && user.getString("password").equals(entry.get(1)))
+                if(user.getString("username").equals(username) && user.getString("password").equals(password))
                     return true;
             }
             return false;
@@ -96,6 +94,27 @@ public class MongoManager
         catch(MongoException e)
         {
             System.err.println("Veritabanı aranırken bir hata oluştu.\n\n" + e);
+            return false;
+        }
+    }
+    
+    public static boolean UsernameExists(String username)
+    {
+        try
+        {
+            MongoCollection<Document> col   = mongoDatabase.getCollection("users");
+            FindIterable<Document>    users = col.find(Filters.exists("username"));
+            
+            for(Document user : users)
+            {
+                if(user.getString("username").equals(username)) return true;
+            }
+            
+            return false;
+        }
+        catch(MongoException e)
+        {
+            System.err.println("Veritabanı aranırken bir hata oluştu.\n" + e);
             return false;
         }
     }

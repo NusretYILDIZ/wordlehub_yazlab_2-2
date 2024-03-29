@@ -1,4 +1,4 @@
-package com.yildizsoft.onlinewordle.splash;
+package com.yildizsoft.onlinewordle.startup;
 
 import android.app.Activity;
 import android.app.AlertDialog;

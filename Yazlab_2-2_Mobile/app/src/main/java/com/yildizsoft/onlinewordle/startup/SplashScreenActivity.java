@@ -1,13 +1,11 @@
-package com.yildizsoft.onlinewordle.splash;
+package com.yildizsoft.onlinewordle.startup;
 
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import com.yildizsoft.onlinewordle.login.LoginActivity;
 import com.yildizsoft.onlinewordle.R;
-import com.yildizsoft.onlinewordle.client.WordleClient;
 
 public class SplashScreenActivity extends AppCompatActivity
 {
