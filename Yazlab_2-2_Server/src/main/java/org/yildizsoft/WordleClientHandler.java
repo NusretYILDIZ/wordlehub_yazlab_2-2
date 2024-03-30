@@ -90,6 +90,7 @@ public class WordleClientHandler implements Runnable
         System.out.println(this.id + " ID'li client bağlantısı sonlandırılıyor...");
         try
         {
+            OnlinePlayers.RemoveOnlinePlayer(this.id);
             clientReader.close();
             clientPrinter.close();
             clientWriter.close();
@@ -140,6 +141,7 @@ public class WordleClientHandler implements Runnable
             }
             else
             {
+                OnlinePlayers.NewOnlinePlayer(new PlayerInfo(this.id, tokens.getFirst()));
                 clientPrinter.println("LOGIN_SUCCESS");
                 System.out.println(this.id + " ID'li client \"" + tokens.getFirst() + "\" kullanıcı adıyla oturum açtı.");
             }

@@ -14,6 +14,6 @@
     <string name="warning_password_match">Şifreler eşleşmiyor.</string>
     <string name="sign_up_if_dont_have_acc">Hesabın yok mu? Hemen üye ol.</string>
     <string name="play_online">Çevrimiçi oyna</string>
-    <string name="play_alone">Tek başına oyna</string>
-    <string name="connecting_to_server">Sunucuya bağlanılıyor...</string>
+    <string name="play_alone">Çevrimdışı oyna</string>
+    <string name="connecting_to_server">Sunucuya bağlanılıyor…</string>
 </resources>
