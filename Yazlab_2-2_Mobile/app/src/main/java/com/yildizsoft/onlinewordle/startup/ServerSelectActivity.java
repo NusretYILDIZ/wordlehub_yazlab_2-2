@@ -25,18 +25,21 @@ public class ServerSelectActivity extends AppCompatActivity
         Button playOffline = findViewById(R.id.playOffline);
 
         serverSelectActivity = this;
+        new Thread(new WordleClient()).start();
 
         playOnline.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v)
             {
-                waitConnectionDialog = new WaitConnectionDialog(serverSelectActivity);
+                new ServerAddressDialog(serverSelectActivity).show(getSupportFragmentManager(), "server_browser");
+                
+                /*waitConnectionDialog = new WaitConnectionDialog(serverSelectActivity);
                 waitConnectionDialog.Show();
 
-                new Thread(new WordleClient("192.168.0.103", 65535)).start();
+                new Thread(new WordleClient("192.168.0.104", 65535)).start();
 
                 splashMain = new Thread(new ServerSelectRunnable(serverSelectActivity));
-                splashMain.start();
+                splashMain.start();*/
             }
         });
 
@@ -56,11 +59,23 @@ public class ServerSelectActivity extends AppCompatActivity
         ServerSelectRunnable.Stop();
     }
     
+    public void ConnectToTheServer(String ip, int port)
+    {
+        waitConnectionDialog = new WaitConnectionDialog(serverSelectActivity);
+        waitConnectionDialog.Show();
+        
+        WordleClient.SetServerIpPort(ip, port);
+        
+        splashMain = new Thread(new ServerSelectRunnable(serverSelectActivity, ip, port));
+        splashMain.start();
+    }
+    
     public void RetryConnecting()
     {
-        waitConnectionDialog.Show();
+        new ServerAddressDialog(serverSelectActivity).show(getSupportFragmentManager(), "server_browser");
+        /*waitConnectionDialog.Show();
         splashMain = new Thread(new ServerSelectRunnable(serverSelectActivity));
-        splashMain.start();
+        splashMain.start();*/
     }
 
     public void GoToLoginActivity()

@@ -36,7 +36,7 @@ public class LoginRunnable implements Runnable
                 if(WordleClient.GetLastTaskResult() == WordleTaskResult.LOGIN_SUCCESS)
                 {
                     WordleClient.RemoveLastTaskResult();
-                    // TODO: Go to game selection screen.
+                    loginActivity.runOnUiThread(loginActivity::GoToGameSelection);
                 }
                 else
                 {

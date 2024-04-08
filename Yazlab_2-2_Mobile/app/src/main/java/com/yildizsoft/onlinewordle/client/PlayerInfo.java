@@ -1,9 +1,9 @@
-package org.yildizsoft;
+package com.yildizsoft.onlinewordle.client;
 
 public class PlayerInfo
 {
-    private final String         id;
-    private final String       username;
+    private final String id;
+    private final String username;
     private       PlayerStatus status;
     private       PlayerLobby  lobby;
     private       String       playingWith;

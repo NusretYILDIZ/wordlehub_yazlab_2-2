@@ -8,5 +8,7 @@ public enum WordleTaskType
     GET,
     POST,
     SIGNUP,
-    LOGIN
+    LOGIN,
+    ENTER_LOBBY,
+    PLAYER_LIST,
 }

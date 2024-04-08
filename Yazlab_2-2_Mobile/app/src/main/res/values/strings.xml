@@ -16,4 +16,20 @@
     <string name="play_online">Çevrimiçi oyna</string>
     <string name="play_alone">Çevrimdışı oyna</string>
     <string name="connecting_to_server">Sunucuya bağlanılıyor…</string>
+    <string name="select_gamemode">Oyun Modu Seç</string>
+    <string name="normal_mode">Normal Mod</string>
+    <string name="restricted_letter_mode">Kısıtlı Harf Modu</string>
+    <string name="select_word_length_text">Kelime Uzunluğu Seç</string>
+    <string name="guess_4_letter_word">4 Harfli Kelime Bul</string>
+    <string name="guess_5_letter_word">5 Harfli Kelime Bul</string>
+    <string name="guess_6_letter_word">6 Harfli Kelime Bul</string>
+    <string name="guess_7_letter_word">7 Harfli Kelime Bul</string>
+    <string name="go_to_gamemode_selector_text">Oyun modu seçimine geri dön.</string>
+    <string name="send_request_text">İstek At</string>
+    <string name="in_game_text">Oyunda</string>
+    <string name="online_text">Çevrimiçi</string>
+    <string name="example_server_address">192.168.0.104</string>
+    <string name="example_server_port">65535</string>
+    <string name="port_text">Port</string>
+    <string name="ip_address_text">IP Adresi</string>
 </resources>

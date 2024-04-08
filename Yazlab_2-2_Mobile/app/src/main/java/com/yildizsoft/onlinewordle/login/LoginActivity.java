@@ -10,9 +10,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.yildizsoft.onlinewordle.R;
+import com.yildizsoft.onlinewordle.game.online.GameSelectActivity;
 import com.yildizsoft.onlinewordle.signup.SignUpActivity;
-
-import java.util.Arrays;
 
 public class LoginActivity extends AppCompatActivity
 {
@@ -90,6 +89,12 @@ public class LoginActivity extends AppCompatActivity
     public void LoginFailedDialog(int failCode)
     {
         new LoginFailedDialog(failCode).show(getSupportFragmentManager(), "loginFail");
+    }
+    
+    public void GoToGameSelection()
+    {
+        startActivity(new Intent(getApplicationContext(), GameSelectActivity.class));
+        finish();
     }
     
     @Override

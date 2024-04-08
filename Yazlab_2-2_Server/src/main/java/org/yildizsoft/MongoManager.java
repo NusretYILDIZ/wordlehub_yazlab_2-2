@@ -46,22 +46,23 @@ public class MongoManager
         }
     }
     
-    public static int AddUser(List<String> entry)
+    public static int AddUser(String username, String password)
     {
         try
         {
             MongoCollection<Document> col      = mongoDatabase.getCollection("users");
             Document                  document = new Document();
+            
             document.append("_id", new ObjectId());
-            document.append("username", entry.getFirst());
-            document.append("password", entry.get(1));
+            document.append("username", username);
+            document.append("password", password);
             
             FindIterable<Document> users = col.find(Filters.exists("username"));
             for(Document d : users)
             {
                 if(d.getString("username").equals(document.getString("username")))
                 {
-                    System.err.println("Kullanıcı \"" + document.toJson() + "\" zaten veritabanında kayıtlı, ekleme yapılmıyor.");
+                    System.err.println("Kullanıcı \"" + username + "\" zaten veritabanında kayıtlı, ekleme yapılmıyor.");
                     return 1;
                 }
             }
@@ -72,7 +73,7 @@ public class MongoManager
         }
         catch(MongoException e)
         {
-            System.err.println('"' + entry.toString() + "\" veritabanına kaydedilemedi.\n" + e);
+            System.err.println('"' + username + ':' + password + "\" veritabanına kaydedilemedi.\n" + e);
             return -1;
         }
     }

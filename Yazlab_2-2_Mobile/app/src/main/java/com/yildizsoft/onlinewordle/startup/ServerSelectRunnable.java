@@ -5,22 +5,29 @@ import com.yildizsoft.onlinewordle.client.WordleTask;
 import com.yildizsoft.onlinewordle.client.WordleTaskResult;
 import com.yildizsoft.onlinewordle.client.WordleTaskType;
 
+import java.util.Arrays;
+
 public class ServerSelectRunnable implements Runnable
 {
     private final ServerSelectActivity splashActivity;
     private static boolean shouldRun;
+    
+    private static String serverIP;
+    private static int serverPort;
 
-    public ServerSelectRunnable(ServerSelectActivity activity)
+    public ServerSelectRunnable(ServerSelectActivity activity, String ip, int port)
     {
         this.splashActivity = activity;
         shouldRun = true;
+        serverIP = ip;
+        serverPort = port;
     }
 
     @Override
     public void run()
     {
         System.out.println("Started new ServerSelectRunnable.");
-        WordleClient.AddNewTask(new WordleTask(WordleTaskType.START_SERVER, null));
+        WordleClient.AddNewTask(new WordleTask(WordleTaskType.START_SERVER, Arrays.asList(serverIP, String.valueOf(serverPort))));
 
         while(shouldRun)
         {

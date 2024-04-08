@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="50dp"
+        tools:context=".game.online.GameSelectActivity">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:id="@+id/gamemodeSelectView"
+            android:visibility="visible">
+
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/select_gamemode"
+                android:textAlignment="center"
+                android:textSize="40sp"
+                android:textStyle="bold"
+                android:textColor="@color/skyBlue"
+                android:layout_marginBottom="20dp"
+        />
+        <Button
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:id="@+id/normalModeButton"
+                android:text="@string/normal_mode"
+                android:textSize="30sp"
+                android:backgroundTint="@color/skyBlue"
+        />
+        <Button
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:id="@+id/constLetterModeButton"
+                android:text="@string/restricted_letter_mode"
+                android:textSize="30sp"
+                android:backgroundTint="@color/skyBlue"
+        />
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:id="@+id/wordLengthSelectView"
+            android:visibility="gone">
+
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/select_word_length_text"
+                android:textAlignment="center"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="@color/skyBlue"
+                android:layout_marginBottom="20dp"
+        />
+        <Button
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:id="@+id/word4LetterButton"
+                android:text="@string/guess_4_letter_word"
+                android:textSize="30sp"
+                android:backgroundTint="@color/skyBlue"
+        />
+        <Button
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:id="@+id/word5LetterButton"
+                android:text="@string/guess_5_letter_word"
+                android:textSize="30sp"
+                android:backgroundTint="@color/skyBlue"
+        />
+        <Button
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:id="@+id/word6LetterButton"
+                android:text="@string/guess_6_letter_word"
+                android:textSize="30sp"
+                android:backgroundTint="@color/skyBlue"
+        />
+        <Button
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:id="@+id/word7LetterButton"
+                android:text="@string/guess_7_letter_word"
+                android:textSize="30sp"
+                android:backgroundTint="@color/skyBlue"
+        />
+
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:id="@+id/openGameModeSelectText"
+                android:text="@string/go_to_gamemode_selector_text"
+                android:textAlignment="center"
+        />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -7,31 +7,40 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class WordleClient implements Runnable
 {
     public static ArrayList<WordleTask> wordleTasks = new ArrayList<>();
     public static ArrayList<WordleTaskResult> wordleTaskResults = new ArrayList<>();
-    //public static WordleTaskResult wordleTaskResult;
-    public static boolean taskSuccessful;
     public static String taskStatus;
 
     private static String serverIP;
     private static int serverPort;
-    private static Socket clientSock;
-    private static PrintWriter clientOut;
-    private static BufferedReader clientIn;
-    private static boolean shouldRun;
+    private static Socket         clientSock;
+    private static PrintWriter    clientPrinter;
+    private static BufferedReader clientReader;
+    private static boolean        shouldRun;
+    
+    private static PlayerInfo player = null;
+    private static final String uid = UUID.randomUUID().toString();
 
-    public WordleClient(String ip, int port)
+    public WordleClient()
     {
-        serverIP = ip;
-        serverPort = port;
+        //serverIP = ip;
+        //serverPort = port;
         shouldRun = true;
         wordleTasks.clear();
         wordleTaskResults.clear();
         //wordleTaskResult = null;
         taskStatus = null;
+        //clientSock = new Socket();
+    }
+    
+    public static void SetServerIpPort(String ip, int port)
+    {
+        serverIP = ip;
+        serverPort = port;
     }
 
     @Override
@@ -69,14 +78,23 @@ public class WordleClient implements Runnable
         }
     }
 
-    public static void StartClient()
+    public static void StartClient(String ip, int port)
     {
+        System.out.println("Connecting to " + ip + ':' + port + "...");
         try
         {
             clientSock = new Socket();
-            clientSock.connect(new InetSocketAddress(serverIP, serverPort), 2000);
-            clientOut = new PrintWriter(clientSock.getOutputStream(), true);
-            clientIn = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
+            //clientSock.connect(new InetSocketAddress(serverIP, serverPort), 3000);
+            clientSock.connect(new InetSocketAddress(ip, port), 3000);
+            clientPrinter = new PrintWriter(clientSock.getOutputStream(), true);
+            clientReader  = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
+            
+            clientPrinter.println(uid);
+            
+            /*if(player != null)
+            {
+                clientPrinter.println(player.getId());
+            }*/
 
             System.out.println("Successfully connected to the server.");
             AddTaskResult(WordleTaskResult.START_SERVER_SUCCESS);
@@ -84,7 +102,7 @@ public class WordleClient implements Runnable
         }
         catch (IOException e)
         {
-            System.out.println("Failed connecting to the server.");
+            System.err.println("Failed connecting to the server.\n" + e);
             AddTaskResult(WordleTaskResult.START_SERVER_FAIL);
             taskStatus = "START_SERVER_FAIL";
         }
@@ -92,7 +110,7 @@ public class WordleClient implements Runnable
 
     public static void SendMessageToServer(String message)
     {
-        clientOut.println(message);
+        clientPrinter.println(message);
     }
 
     public static String CreateMessageFromTask(WordleTask wordleTask)
@@ -110,85 +128,142 @@ public class WordleClient implements Runnable
     {
         try
         {
-            return clientIn.readLine();
+            return clientReader.readLine();
         }
         catch(IOException e)
         {
             return null;
         }
     }
-
-    public static void HandleTask(WordleTask wordleTask)
-    {
-        String response;
-
-        switch(wordleTask.getTask())
-        {
-        case START_SERVER:
-            System.out.println("Starting client...");
-            StartClient();
-            break;
-
-        case SIGNUP:
-            SendMessageToServer(CreateMessageFromTask(wordleTask));
-            response = WaitForResponse();
-            if(response != null && response.equals("SIGNUP_SUCCESS")) AddTaskResult(WordleTaskResult.SIGNUP_SUCCESS);
-            else
-            {
-                if(response == null) AddTaskResult(WordleTaskResult.SIGNUP_FAIL_OTHER);
-                else if(response.equals("SIGNUP_FAIL_USER_ALREADY_EXISTS")) AddTaskResult(WordleTaskResult.SIGNUP_FAIL_USER_ALREADY_EXISTS);
-                else AddTaskResult(WordleTaskResult.SIGNUP_FAIL_OTHER);
-            }
-            break;
-
-        case LOGIN:
-            SendMessageToServer(CreateMessageFromTask(wordleTask));
-            response = WaitForResponse();
-            System.out.println("Response: " + response);
-            
-            if(response != null && response.equals("LOGIN_SUCCESS"))
-            {
-                taskStatus = response;
-                AddTaskResult(WordleTaskResult.LOGIN_SUCCESS);
-            }
-            else
-            {
-                taskStatus = response;
-                if(response == null) AddTaskResult(WordleTaskResult.LOGIN_FAIL_OTHER);
-                
-                else if(response.equals("LOGIN_FAIL_USERNAME_NOT_FOUND"))
-                    AddTaskResult(WordleTaskResult.LOGIN_FAIL_USERNAME_NOT_FOUND);
-                
-                else if(response.equals("LOGIN_FAIL_WRONG_PASSWORD"))
-                    AddTaskResult(WordleTaskResult.LOGIN_FAIL_WRONG_PASSWORD);
-                
-                else AddTaskResult(WordleTaskResult.LOGIN_FAIL_OTHER);
-            }
-            break;
-        }
-    }
-
+    
     public static void DisconnectClient()
     {
-        if(clientOut != null) SendMessageToServer("quit");
+        if(clientPrinter != null) SendMessageToServer("quit");
     }
-
+    
     public static void StopClient()
     {
         shouldRun = false;
         wordleTasks.clear();
         wordleTaskResults.clear();
         //wordleTaskResult = null;
-
+        
         try
         {
-            clientIn.close();
-            clientOut.close();
+            clientReader.close();
+            clientPrinter.close();
             clientSock.close();
         }
         catch(IOException | NullPointerException e)
         {
             System.err.println("Client kapatılırken bir hata oluştu.\n" + e);
+        }
+    }
+    
+    public static void SetPlayerLobby(PlayerLobby lobby)
+    {
+        if(player != null) player.setLobby(lobby);
+    }
+
+    public static void HandleTask(WordleTask wordleTask)
+    {
+        switch(wordleTask.getTask())
+        {
+        case START_SERVER:
+            StartClient(wordleTask.getContents().get(0), Integer.parseInt(wordleTask.getContents().get(1)));
+            break;
+
+        case SIGNUP:
+            SendMessageToServer(CreateMessageFromTask(wordleTask));
+            SignUpTask();
+            break;
+
+        case LOGIN:
+            SendMessageToServer(CreateMessageFromTask(wordleTask));
+            LoginTask();
+            break;
+            
+        case ENTER_LOBBY:
+            SendMessageToServer(CreateMessageFromTask(wordleTask));
+            EnterLobbyTask();
+            break;
+            
+        case PLAYER_LIST:
+            SendMessageToServer(CreateMessageFromTask(wordleTask));
+            PlayerListTask();
+            break;
+        }
+    }
+    
+    protected static void SignUpTask()
+    {
+        String response = WaitForResponse();
+        System.out.println("Sign up response: " + response);
+        
+        if(response != null && response.equals("SIGNUP_SUCCESS")) AddTaskResult(WordleTaskResult.SIGNUP_SUCCESS);
+        else
+        {
+            if(response == null) AddTaskResult(WordleTaskResult.SIGNUP_FAIL_OTHER);
+            else if(response.equals("SIGNUP_FAIL_USER_ALREADY_EXISTS")) AddTaskResult(WordleTaskResult.SIGNUP_FAIL_USER_ALREADY_EXISTS);
+            else AddTaskResult(WordleTaskResult.SIGNUP_FAIL_OTHER);
+        }
+    }
+    
+    protected static void LoginTask()
+    {
+        String response = WaitForResponse();
+        System.out.println("Login response: " + response);
+        taskStatus = response;
+        
+        if(response != null && response.startsWith("LOGIN_SUCCESS"))
+        {
+            String[] splitResponse = response.split("\"");
+            String id = splitResponse[1];
+            String username = splitResponse[2];
+            
+            player = new PlayerInfo(id, username);
+            AddTaskResult(WordleTaskResult.LOGIN_SUCCESS);
+        }
+        else
+        {
+            if(response == null) AddTaskResult(WordleTaskResult.LOGIN_FAIL_OTHER);
+            
+            else if(response.equals("LOGIN_FAIL_USERNAME_NOT_FOUND"))
+                AddTaskResult(WordleTaskResult.LOGIN_FAIL_USERNAME_NOT_FOUND);
+            
+            else if(response.equals("LOGIN_FAIL_WRONG_PASSWORD"))
+                AddTaskResult(WordleTaskResult.LOGIN_FAIL_WRONG_PASSWORD);
+            
+            else AddTaskResult(WordleTaskResult.LOGIN_FAIL_OTHER);
+        }
+    }
+    
+    protected static void EnterLobbyTask()
+    {
+        String response = WaitForResponse();
+        System.out.println("Enter lobby response: " + response);
+        
+        if(response != null && response.startsWith("ENTER_LOBBY_SUCCESS"))
+            AddTaskResult(WordleTaskResult.ENTER_LOBBY_SUCCESS);
+        
+        else AddTaskResult(WordleTaskResult.ENTER_LOBBY_FAIL);
+    }
+    
+    protected static void PlayerListTask()
+    {
+        String response = WaitForResponse();
+        System.out.println("Player list response: " + response);
+        
+        if(response == null) AddTaskResult(WordleTaskResult.PLAYER_LIST_FAIL_OTHER);
+        
+        else if(response.equals("LOGIN_REQUIRED")) AddTaskResult(WordleTaskResult.PLAYER_LIST_FAIL_LOGIN_REQUIRED);
+        
+        else if(response.equals("NO_PLAYERS")) AddTaskResult(WordleTaskResult.PLAYER_LIST_FAIL_NO_PLAYERS);
+        
+        else
+        {
+            System.out.println("Oyuncu listesi alındı.");
+            // TODO: Add a task result that contains the player list.
         }
     }
 
