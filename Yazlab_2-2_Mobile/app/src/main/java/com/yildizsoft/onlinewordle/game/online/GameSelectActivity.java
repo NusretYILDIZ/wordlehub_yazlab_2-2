@@ -8,6 +8,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.yildizsoft.onlinewordle.R;
+import com.yildizsoft.onlinewordle.client.PlayerLobby;
+import com.yildizsoft.onlinewordle.client.WordleClient;
 import com.yildizsoft.onlinewordle.login.LoginActivity;
 
 public class GameSelectActivity extends AppCompatActivity
@@ -108,6 +110,7 @@ public class GameSelectActivity extends AppCompatActivity
     
     public void GoToLobby()
     {
+        WordleClient.SetPlayerLobby(PlayerLobby.valueOf(constLetterMode + "_CONST_" + letterCount + "_LETTER"));
         startActivity(new Intent(getApplicationContext(), LobbyActivity.class));
         finish();
     }

@@ -31,6 +31,15 @@ public class LoginRunnable implements Runnable
         {
             System.out.println("LoginRunnable loop.");
             
+            try
+            {
+                Thread.sleep(500);
+            }
+            catch(InterruptedException e)
+            {
+                throw new RuntimeException(e);
+            }
+            
             if(!WordleClient.IsTaskResultsEmpty())
             {
                 if(WordleClient.GetLastTaskResult() == WordleTaskResult.LOGIN_SUCCESS)
@@ -55,15 +64,6 @@ public class LoginRunnable implements Runnable
                     loginActivity.runOnUiThread(() -> loginActivity.LoginFailedDialog(failCode));
                 }
                 return;
-            }
-            
-            try
-            {
-                Thread.sleep(500);
-            }
-            catch(InterruptedException e)
-            {
-                throw new RuntimeException(e);
             }
         }
     }

@@ -39,6 +39,7 @@
             android:id="@+id/sendRequestButton"
             android:layout_marginStart="10dp"
             android:text="@string/send_request_text"
+            android:backgroundTint="@color/skyBlue"
             android:visibility="visible"
     />
 

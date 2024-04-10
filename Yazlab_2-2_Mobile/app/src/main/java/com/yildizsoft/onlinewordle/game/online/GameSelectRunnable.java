@@ -29,6 +29,15 @@ public class GameSelectRunnable implements Runnable
         
         while(shouldRun)
         {
+            try
+            {
+                Thread.sleep(500);
+            }
+            catch(InterruptedException e)
+            {
+                throw new RuntimeException(e);
+            }
+            
             if(!WordleClient.IsTaskResultsEmpty())
             {
                 if(WordleClient.GetLastTaskResult() == WordleTaskResult.ENTER_LOBBY_SUCCESS)
@@ -38,15 +47,6 @@ public class GameSelectRunnable implements Runnable
                 
                 WordleClient.RemoveLastTaskResult();
                 return;
-            }
-            
-            try
-            {
-                Thread.sleep(500);
-            }
-            catch(InterruptedException e)
-            {
-                throw new RuntimeException(e);
             }
         }
     }

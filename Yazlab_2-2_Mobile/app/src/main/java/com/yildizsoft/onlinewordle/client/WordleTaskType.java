@@ -10,5 +10,6 @@ public enum WordleTaskType
     SIGNUP,
     LOGIN,
     ENTER_LOBBY,
+    EXIT_LOBBY,
     PLAYER_LIST,
 }

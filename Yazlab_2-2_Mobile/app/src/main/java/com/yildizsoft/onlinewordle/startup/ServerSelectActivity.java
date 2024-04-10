@@ -64,7 +64,7 @@ public class ServerSelectActivity extends AppCompatActivity
         waitConnectionDialog = new WaitConnectionDialog(serverSelectActivity);
         waitConnectionDialog.Show();
         
-        WordleClient.SetServerIpPort(ip, port);
+        //WordleClient.SetServerIpPort(ip, port);
         
         splashMain = new Thread(new ServerSelectRunnable(serverSelectActivity, ip, port));
         splashMain.start();

@@ -7,16 +7,19 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 public class WordleClient implements Runnable
 {
     public static ArrayList<WordleTask> wordleTasks = new ArrayList<>();
     public static ArrayList<WordleTaskResult> wordleTaskResults = new ArrayList<>();
+    public static String wordleTaskResultParam = "";
     public static String taskStatus;
 
-    private static String serverIP;
-    private static int serverPort;
+    //private static String serverIP;
+    //private static int serverPort;
     private static Socket         clientSock;
     private static PrintWriter    clientPrinter;
     private static BufferedReader clientReader;
@@ -37,11 +40,11 @@ public class WordleClient implements Runnable
         //clientSock = new Socket();
     }
     
-    public static void SetServerIpPort(String ip, int port)
+    /*public static void SetServerIpPort(String ip, int port)
     {
         serverIP = ip;
         serverPort = port;
-    }
+    }*/
 
     @Override
     public void run()
@@ -58,7 +61,7 @@ public class WordleClient implements Runnable
                     StopClient();
                     shouldRun = false;
                 }
-                else //if(!task.isProcessing())
+                else if(!task.isProcessing())
                 {
                     wordleTasks.get(i).setProcessing(true);
                     HandleTask(task);
@@ -69,7 +72,7 @@ public class WordleClient implements Runnable
 
             try
             {
-                Thread.sleep(100);
+                Thread.sleep(50);
             }
             catch(InterruptedException e)
             {
@@ -118,8 +121,9 @@ public class WordleClient implements Runnable
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(wordleTask.getTask().toString());
 
-        for(String s : wordleTask.getContents())
-            stringBuilder.append('"').append(s);
+        if(wordleTask.getContents() != null)
+            for(String s : wordleTask.getContents())
+                stringBuilder.append('"').append(s);
 
         return stringBuilder.toString();
     }
@@ -164,6 +168,11 @@ public class WordleClient implements Runnable
     {
         if(player != null) player.setLobby(lobby);
     }
+    
+    public static PlayerInfo GetCurrentPlayer()
+    {
+        return player;
+    }
 
     public static void HandleTask(WordleTask wordleTask)
     {
@@ -186,6 +195,11 @@ public class WordleClient implements Runnable
         case ENTER_LOBBY:
             SendMessageToServer(CreateMessageFromTask(wordleTask));
             EnterLobbyTask();
+            break;
+            
+        case EXIT_LOBBY:
+            SendMessageToServer(CreateMessageFromTask(wordleTask));
+            ExitLobbyTask();
             break;
             
         case PLAYER_LIST:
@@ -249,6 +263,17 @@ public class WordleClient implements Runnable
         else AddTaskResult(WordleTaskResult.ENTER_LOBBY_FAIL);
     }
     
+    protected static void ExitLobbyTask()
+    {
+        String response = WaitForResponse();
+        System.out.println("Exit lobby response: " + response);
+        
+        if(response != null && response.startsWith("EXIT_LOBBY_SUCCESS"))
+            AddTaskResult(WordleTaskResult.EXIT_LOBBY_SUCCESS);
+        
+        else AddTaskResult(WordleTaskResult.EXIT_LOBBY_FAIL);
+    }
+    
     protected static void PlayerListTask()
     {
         String response = WaitForResponse();
@@ -264,6 +289,14 @@ public class WordleClient implements Runnable
         {
             System.out.println("Oyuncu listesi alındı.");
             // TODO: Add a task result that contains the player list.
+            List<String> tokens = new ArrayList<>(Arrays.asList(response.split("\"")));
+            tokens.remove(0);
+            
+            StringBuilder builder = new StringBuilder(tokens.get(0));
+            for(int i = 1; i < tokens.size(); i++) builder.append('"').append(tokens.get(i));
+            
+            wordleTaskResultParam = builder.toString();
+            AddTaskResult(WordleTaskResult.PLAYER_LIST_SUCCESS);
         }
     }
 

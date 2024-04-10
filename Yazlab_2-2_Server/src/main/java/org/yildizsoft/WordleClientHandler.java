@@ -45,7 +45,7 @@ public class WordleClientHandler implements Runnable
             System.err.println("Client bağlanırken bir hata oluştu.\n" + e);
             shouldContinue = false;
         }
-        System.out.println("Yeni bir client bağlandı. Client ID: " + this.id);
+        LogMessage("Yeni bir client bağlandı. Client ID: " + this.id);
         
         boolean networkError = false;
         String line;
@@ -59,7 +59,7 @@ public class WordleClientHandler implements Runnable
                     
                     if(networkError)
                     {
-                        System.out.println(this.id + " ID'li client ile tekrar bağlantı kuruldu.");
+                        LogMessage("Tekrar bağlantı kuruldu.");
                         networkError = false;
                         if(scheduledFuture != null) scheduledFuture.cancel(false);
                         if(scheduledExecutorService != null) scheduledExecutorService.shutdownNow();
@@ -71,7 +71,7 @@ public class WordleClientHandler implements Runnable
                     
                     if(this.failCount >= 3)
                     {
-                        System.err.println(this.id + " ID'li client'ın bağlantısı kopmuş olabilir. Client oturumu 10 saniye içinde kapatılacak.");
+                        LogError("Bağlantı kopmuş olabilir. Oturum 10 saniye içinde kapatılacak.");
                         //Disconnect();
                         if(!networkError)
                         {
@@ -99,7 +99,7 @@ public class WordleClientHandler implements Runnable
             }
             catch(IOException e)
             {
-                System.err.println(this.id + " ID'li client'tan veri okunurken bir hata oluştu.\n" + e);
+                LogError("Veri okunurken bir hata oluştu.\n" + e);
                 shouldContinue = false;
                 Disconnect();
             }
@@ -110,7 +110,7 @@ public class WordleClientHandler implements Runnable
     
     public void Disconnect()
     {
-        System.out.println(this.id + " ID'li client bağlantısı sonlandırılıyor...");
+        LogMessage("Bağlantı sonlandırılıyor...");
         try
         {
             OnlinePlayers.RemoveOnlinePlayer(this.id);
@@ -121,14 +121,14 @@ public class WordleClientHandler implements Runnable
         }
         catch(IOException e)
         {
-            System.err.println(this.id + " ID'li client bağlantısı sonlandırılırken bir hata oluştu.\n" + e);
+            LogError("Bağlantı sonlandırılırken bir hata oluştu.\n" + e);
         }
-        System.out.println(this.id + " ID'li client bağlantısı sonlandırıldı.");
+        LogMessage("Bağlantı sonlandırıldı.");
     }
     
     public void HandleClientRequest(String req) throws IOException
     {
-        System.out.println(req);
+        LogMessage(req);
         List<String> tokens = new ArrayList<>(Arrays.asList(req.split("\"")));
         String       task   = tokens.getFirst();
         tokens.removeFirst();
@@ -145,6 +145,10 @@ public class WordleClientHandler implements Runnable
             
         case "ENTER_LOBBY":
             EnterLobbyTask(tokens);
+            break;
+        
+        case "EXIT_LOBBY":
+            ExitLobbyTask(tokens);
             break;
             
         case "PLAYER_LIST":
@@ -175,18 +179,18 @@ public class WordleClientHandler implements Runnable
         if(!MongoManager.UsernameExists(tokens.getFirst()))
         {
             clientPrinter.println("LOGIN_FAIL_USERNAME_NOT_FOUND");
-            System.err.println(this.id + " ID'li client yanlış kullanıcı adı girdi ve oturum açamadı.");
+            LogError("Yanlış kullanıcı adı girdi ve oturum açamadı.");
         }
         else if(!MongoManager.UserExists(tokens.getFirst(), tokens.get(1)))
         {
             clientPrinter.println("LOGIN_FAIL_WRONG_PASSWORD");
-            System.err.println(this.id + " ID'li client yanlış şifre girdi ve oturum açamadı.");
+            LogError("Yanlış şifre girdi ve oturum açamadı.");
         }
         else
         {
             OnlinePlayers.NewOnlinePlayer(new PlayerInfo(this.id, tokens.getFirst()));
             clientPrinter.println("LOGIN_SUCCESS\"" + this.id + '"' + tokens.getFirst());
-            System.out.println(this.id + " ID'li client \"" + tokens.getFirst() + "\" kullanıcı adıyla oturum açtı.");
+            LogMessage('"' + tokens.getFirst() + "\" kullanıcı adıyla oturum açtı.");
         }
     }
     
@@ -202,11 +206,27 @@ public class WordleClientHandler implements Runnable
             
             OnlinePlayers.SetLobbyOfPlayer(player, lobby);
             clientPrinter.println("ENTER_LOBBY_SUCCESS\"" + lobby);
+            LogMessage("Başarıyla odaya girdi.");
         }
         else
         {
             clientPrinter.println("LOGIN_REQUIRED");
-            System.err.println(this.id + " ID'li client oturum açmadan odaya girmeye çalışıyor.");
+            LogError("Oturum açmadan odaya girmeye çalışıyor.");
+        }
+    }
+    
+    public void ExitLobbyTask(List<String> tokens)
+    {
+        if(OnlinePlayers.GetOnlinePlayerByID(this.id) != null && OnlinePlayers.GetOnlinePlayerByID(this.id).getLobby() != null)
+        {
+            OnlinePlayers.SetLobbyOfPlayer(OnlinePlayers.GetOnlinePlayerByID(this.id), null);
+            clientPrinter.println("EXIT_LOBBY_SUCCESS");
+            LogMessage("Odadan çıktı ve oda seçim ekranına döndü.");
+        }
+        else
+        {
+            clientPrinter.println("EXIT_LOBBY_FAIL");
+            LogMessage("Odadan çıkamadı.");
         }
     }
     
@@ -221,7 +241,7 @@ public class WordleClientHandler implements Runnable
             if(players.isEmpty())
             {
                 clientPrinter.println("NO_PLAYERS");
-                System.out.println(player.getLobby() + " odasında oyuncu yok.");
+                //LogMessage(player.getLobby() + " odasında oyuncu yok.");
             }
             else
             {
@@ -230,13 +250,23 @@ public class WordleClientHandler implements Runnable
                 for(PlayerInfo playerInLobby : players) builder.append('"').append(playerInLobby.getUsername()).append('"').append(playerInLobby.getStatus());
                 
                 clientPrinter.println(builder);
-                System.out.println(player.getLobby() + " odasındaki oyuncular: " + builder);
+                //LogMessage(player.getLobby() + " odasındaki oyuncular: " + builder);
             }
         }
         else
         {
             clientPrinter.println("LOGIN_REQUIRED");
-            System.err.println(this.id + " ID'li client oturum açmadan oyuncu listesini görmeye çalışıyor.");
+            LogError("Oturum açmadan oyuncu listesini görmeye çalışıyor.");
         }
+    }
+    
+    public void LogMessage(String msg)
+    {
+        System.out.println('[' + this.id + "] " + msg);
+    }
+    
+    public void LogError(String msg)
+    {
+        System.err.println('[' + this.id + "] " + msg);
     }
 }

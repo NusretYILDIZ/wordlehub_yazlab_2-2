@@ -8,19 +8,28 @@ public class PlayerInfo
     private       PlayerLobby  lobby;
     private       String       playingWith;
     
-    public PlayerInfo(String id, String username/*, PlayerStatus status, PlayerLobby lobby*/)
+    public PlayerInfo(/*String id, */String username, PlayerStatus status/*, PlayerLobby lobby*/)
     {
-        this.id          = id;
+        this.id          = null;
         this.username    = username;
-        this.status      = PlayerStatus.ONLINE; //status;
+        this.status      = status;
         this.lobby       = null; //lobby;
         this.playingWith = null;
     }
     
-    public String getId()
+    public PlayerInfo(String id, String username)
+    {
+        this.id = id;
+        this.username    = username;
+        this.status      = PlayerStatus.ONLINE;
+        this.lobby       = null; //lobby;
+        this.playingWith = null;
+    }
+    
+    /*public String getId()
     {
         return id;
-    }
+    }*/
     
     public String getUsername()
     {
