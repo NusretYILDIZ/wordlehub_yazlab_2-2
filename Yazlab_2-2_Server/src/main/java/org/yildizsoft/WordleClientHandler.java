@@ -143,6 +143,10 @@ public class WordleClientHandler implements Runnable
             LoginTask(tokens);
             break;
             
+        case "LOGOUT":
+            LogoutTask(tokens);
+            break;
+            
         case "ENTER_LOBBY":
             EnterLobbyTask(tokens);
             break;
@@ -192,6 +196,13 @@ public class WordleClientHandler implements Runnable
             clientPrinter.println("LOGIN_SUCCESS\"" + this.id + '"' + tokens.getFirst());
             LogMessage('"' + tokens.getFirst() + "\" kullanıcı adıyla oturum açtı.");
         }
+    }
+    
+    public void LogoutTask(List<String> tokens)
+    {
+        OnlinePlayers.RemoveOnlinePlayer(this.id);
+        clientPrinter.println("LOGOUT_SUCCESS");
+        LogMessage("Oturum kapatıldı.");
     }
     
     public void EnterLobbyTask(List<String> tokens)

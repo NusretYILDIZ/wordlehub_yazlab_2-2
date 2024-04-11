@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.yildizsoft.onlinewordle"
+    namespace = "com.yildizsoft.wordlehub"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.yildizsoft.onlinewordle"
+        applicationId = "com.yildizsoft.wordlehub"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

@@ -14,13 +14,73 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/login_title_beta"
-            android:paddingBottom="50dp"
+            android:layout_marginBottom="50dp"
             android:textAlignment="center"
             android:textSize="40sp"
             android:textStyle="bold"
             android:textColor="@color/skyBlue"
     />
-    <Button
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginBottom="10dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:id="@+id/playOnline"
+            android:background="@drawable/image_button_bg"
+            android:clickable="true"
+            android:focusable="true"
+    >
+        <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:src="@drawable/play_online_icon"
+                android:contentDescription="@string/play_online"
+        />
+
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:text="@string/play_online"
+                android:textSize="25sp"
+                android:textColor="@color/white"
+        />
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:id="@+id/playOffline"
+            android:background="@drawable/image_button_bg"
+            android:clickable="true"
+            android:focusable="true"
+    >
+        <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:src="@drawable/play_offline_icon"
+                android:contentDescription="@string/play_online"
+        />
+
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:text="@string/play_offline"
+                android:textSize="25sp"
+                android:textColor="@color/white"
+        />
+
+    </LinearLayout>
+
+    <!--<Button
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -28,8 +88,8 @@
             android:text="@string/play_online"
             android:textSize="35sp"
             android:backgroundTint="@color/skyBlue"
-    />
-    <Button
+    />-->
+    <!--<Button
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -37,6 +97,6 @@
             android:text="@string/play_alone"
             android:textSize="35sp"
             android:backgroundTint="@color/skyBlue"
-    />
+    />-->
 
 </LinearLayout>
