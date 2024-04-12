@@ -2,8 +2,6 @@ package com.yildizsoft.wordlehub.signup;
 
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.client.WordleTask;
-import com.yildizsoft.wordlehub.client.WordleTaskResult;
-import com.yildizsoft.wordlehub.client.WordleTaskType;
 
 import java.util.Arrays;
 
@@ -25,39 +23,42 @@ public class SignUpRunnable implements Runnable
     @Override
     public void run()
     {
-        WordleClient.AddNewTask(new WordleTask(WordleTaskType.SIGNUP, Arrays.asList(this.username, this.password)));
+        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.SIGNUP, Arrays.asList(this.username, this.password)));
         
-        while(shouldRun)
+        shouldRun = true;
+        
+        while(shouldRun && taskID != -1)
         {
-            if(!WordleClient.IsTaskResultsEmpty())
-            {
-                shouldRun = false;
-                if(WordleClient.GetLastTaskResult() == WordleTaskResult.SIGNUP_SUCCESS)
-                {
-                    WordleClient.RemoveLastTaskResult();
-                    signUpActivity.runOnUiThread(signUpActivity::GoToLoginActivity);
-                }
-                else
-                {
-                    WordleTaskResult result = WordleClient.GetLastTaskResult();
-                    WordleClient.RemoveLastTaskResult();
-                    int failCode;
-                    
-                    if(result == WordleTaskResult.SIGNUP_FAIL_USER_ALREADY_EXISTS) failCode = SignUpFailedDialog.USER_ALREADY_EXISTS;
-                    else failCode = SignUpFailedDialog.OTHER;
-                    
-                    signUpActivity.runOnUiThread(() -> signUpActivity.SignUpFailedDialog(failCode));
-                }
-                return;
-            }
-            
             try
             {
-                Thread.sleep(500);
+                Thread.sleep(WordleClient.THREAD_SLEEP_DURATION);
             }
             catch(InterruptedException e)
             {
                 throw new RuntimeException(e);
+            }
+            
+            WordleTask.Result taskResult = WordleClient.GetTaskResult(taskID);
+            
+            if(taskResult != null)
+            {
+                if(taskResult.getType() == WordleTask.ResultType.SIGNUP_SUCCESS)
+                {
+                    signUpActivity.runOnUiThread(signUpActivity::GoToLoginActivity);
+                }
+                else if(taskResult.getType() == WordleTask.ResultType.SIGNUP_FAIL_USER_ALREADY_EXISTS)
+                {
+                    signUpActivity.runOnUiThread(() -> signUpActivity.SignUpFailedDialog(SignUpFailedDialog.USER_ALREADY_EXISTS));
+                }
+                else if(taskResult.getType() == WordleTask.ResultType.SIGNUP_FAIL_OTHER)
+                {
+                    signUpActivity.runOnUiThread(() -> signUpActivity.SignUpFailedDialog(SignUpFailedDialog.OTHER));
+                }
+                else
+                {
+                    System.err.println("Unknown task result '" + taskResult + "' in SignUpRunnable, exiting.");
+                }
+                shouldRun = false;
             }
         }
     }

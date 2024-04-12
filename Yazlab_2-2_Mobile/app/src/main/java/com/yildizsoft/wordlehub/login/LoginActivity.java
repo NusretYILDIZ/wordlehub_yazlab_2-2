@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.yildizsoft.wordlehub.R;
+import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.game.online.GameSelectActivity;
 import com.yildizsoft.wordlehub.signup.SignUpActivity;
 
@@ -24,6 +25,8 @@ public class LoginActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        
+        WordleClient.FlushTaskList();
         
         loginActivity = this;
         

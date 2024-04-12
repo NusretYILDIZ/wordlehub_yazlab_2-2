@@ -2,8 +2,6 @@ package com.yildizsoft.wordlehub.startup;
 
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.client.WordleTask;
-import com.yildizsoft.wordlehub.client.WordleTaskResult;
-import com.yildizsoft.wordlehub.client.WordleTaskType;
 
 import java.util.Arrays;
 
@@ -27,15 +25,25 @@ public class ServerSelectRunnable implements Runnable
     public void run()
     {
         System.out.println("Started new ServerSelectRunnable.");
-        WordleClient.AddNewTask(new WordleTask(WordleTaskType.START_SERVER, Arrays.asList(serverIP, String.valueOf(serverPort))));
+        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.CONNECT_TO_SERVER, Arrays.asList(serverIP, String.valueOf(serverPort))));
 
-        while(shouldRun)
+        while(shouldRun && taskID != -1)
         {
             System.out.println("Inside of run.");
-
-            if(!WordleClient.IsTaskResultsEmpty())
+            
+            try
             {
-                if(WordleClient.GetLastTaskResult() == WordleTaskResult.START_SERVER_SUCCESS)
+                Thread.sleep(WordleClient.THREAD_SLEEP_DURATION);
+            }
+            catch(InterruptedException e)
+            {
+                System.err.println("SplashScreenRunnable cannot wait.");
+                throw new RuntimeException(e);
+            }
+
+            /*if(!WordleClient.IsTaskResultsEmpty())
+            {
+                if(WordleClient.GetLastTaskResult() == WordleTask.ResultType.CONNECT_TO_SERVER_SUCCESS)
                 {
                     WordleClient.RemoveLastTaskResult();
                     splashActivity.runOnUiThread(splashActivity::DismissWaitDialog);
@@ -51,16 +59,27 @@ public class ServerSelectRunnable implements Runnable
                     shouldRun = false;
                     //return;
                 }
-            }
-
-            try
+            }*/
+            
+            WordleTask.Result taskResult = WordleClient.GetTaskResult(taskID);
+            
+            if(taskResult != null)
             {
-                Thread.sleep(500);
-            }
-            catch(InterruptedException e)
-            {
-                System.err.println("SplashScreenRunnable cannot wait.");
-                throw new RuntimeException(e);
+                if(taskResult.getType() == WordleTask.ResultType.CONNECT_TO_SERVER_SUCCESS)
+                {
+                    splashActivity.runOnUiThread(splashActivity::DismissWaitDialog);
+                    splashActivity.runOnUiThread(splashActivity::GoToLoginActivity);
+                }
+                else if(taskResult.getType() == WordleTask.ResultType.CONNECT_TO_SERVER_FAIL)
+                {
+                    splashActivity.runOnUiThread(splashActivity::DismissWaitDialog);
+                    splashActivity.runOnUiThread(splashActivity::ConnectionErrorDialog);
+                }
+                else
+                {
+                    System.err.println("Unknown task result '" + taskResult + "' in ServerSelectRunnable, exiting.");
+                }
+                shouldRun = false;
             }
         }
         

@@ -80,23 +80,4 @@
 
     </LinearLayout>
 
-    <!--<Button
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:id="@+id/playOnline"
-            android:text="@string/play_online"
-            android:textSize="35sp"
-            android:backgroundTint="@color/skyBlue"
-    />-->
-    <!--<Button
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:id="@+id/playOffline"
-            android:text="@string/play_alone"
-            android:textSize="35sp"
-            android:backgroundTint="@color/skyBlue"
-    />-->
-
 </LinearLayout>

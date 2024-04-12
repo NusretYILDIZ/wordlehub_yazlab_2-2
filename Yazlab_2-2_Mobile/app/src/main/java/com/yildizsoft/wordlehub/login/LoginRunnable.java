@@ -2,8 +2,6 @@ package com.yildizsoft.wordlehub.login;
 
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.client.WordleTask;
-import com.yildizsoft.wordlehub.client.WordleTaskResult;
-import com.yildizsoft.wordlehub.client.WordleTaskType;
 
 import java.util.Arrays;
 
@@ -25,45 +23,48 @@ public class LoginRunnable implements Runnable
     @Override
     public void run()
     {
-        WordleClient.AddNewTask(new WordleTask(WordleTaskType.LOGIN, Arrays.asList(username, password)));
+        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.LOGIN, Arrays.asList(username, password)));
         
-        while(shouldRun)
+        shouldRun = true;
+        
+        while(shouldRun && taskID != -1)
         {
             System.out.println("LoginRunnable loop.");
             
             try
             {
-                Thread.sleep(500);
+                Thread.sleep(WordleClient.THREAD_SLEEP_DURATION);
             }
             catch(InterruptedException e)
             {
                 throw new RuntimeException(e);
             }
             
-            if(!WordleClient.IsTaskResultsEmpty())
+            WordleTask.Result taskResult = WordleClient.GetTaskResult(taskID);
+            
+            if(taskResult != null)
             {
-                if(WordleClient.GetLastTaskResult() == WordleTaskResult.LOGIN_SUCCESS)
+                if(taskResult.getType() == WordleTask.ResultType.LOGIN_SUCCESS)
                 {
-                    WordleClient.RemoveLastTaskResult();
                     loginActivity.runOnUiThread(loginActivity::GoToGameSelection);
+                }
+                else if(taskResult.getType() == WordleTask.ResultType.LOGIN_FAIL_USERNAME_NOT_FOUND)
+                {
+                    loginActivity.runOnUiThread(() -> loginActivity.LoginFailedDialog(LoginFailedDialog.USERNAME_NOT_FOUND));
+                }
+                else if(taskResult.getType() == WordleTask.ResultType.LOGIN_FAIL_WRONG_PASSWORD)
+                {
+                    loginActivity.runOnUiThread(() -> loginActivity.LoginFailedDialog(LoginFailedDialog.WRONG_PASSWORD));
+                }
+                else if(taskResult.getType() == WordleTask.ResultType.LOGIN_FAIL_OTHER)
+                {
+                    loginActivity.runOnUiThread(() -> loginActivity.LoginFailedDialog(LoginFailedDialog.OTHER));
                 }
                 else
                 {
-                    WordleTaskResult result = WordleClient.GetLastTaskResult();
-                    WordleClient.RemoveLastTaskResult();
-                    int failCode;
-                    
-                    if(result == WordleTaskResult.LOGIN_FAIL_USERNAME_NOT_FOUND)
-                        failCode = LoginFailedDialog.USERNAME_NOT_FOUND;
-                    
-                    else if(result == WordleTaskResult.LOGIN_FAIL_WRONG_PASSWORD)
-                        failCode = LoginFailedDialog.WRONG_PASSWORD;
-                    
-                    else failCode = LoginFailedDialog.OTHER;
-                    
-                    loginActivity.runOnUiThread(() -> loginActivity.LoginFailedDialog(failCode));
+                    System.err.println("Unknown task result '" + taskResult + "' in LoginRunnable, exiting.");
                 }
-                return;
+                shouldRun = false;
             }
         }
     }

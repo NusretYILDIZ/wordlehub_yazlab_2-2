@@ -25,7 +25,7 @@ public class LobbyActivity extends AppCompatActivity
     List<PlayerInfo> playerInfoList = new ArrayList<>();
     RecyclerView recycledLobbyView;
     Context context;
-    Thread lobbyThread;
+    LobbyActivity lobbyActivity;
     
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -33,30 +33,9 @@ public class LobbyActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lobby);
         
-        Button backToGameSelectButton = findViewById(R.id.backToGameSelectButton);
-        Button logoutButton = findViewById(R.id.logoutButton);
+        WordleClient.FlushTaskList();
         
-        backToGameSelectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-                WordleClient.AddNewTask(new WordleTask(WordleTaskType.EXIT_LOBBY, null));
-                LobbyRunnable.Stop();
-                startActivity(new Intent(getApplicationContext(), GameSelectActivity.class));
-                finish();
-            }
-        });
-        
-        logoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-                WordleClient.AddNewTask(new WordleTask(WordleTaskType.LOGOUT, null));
-                LobbyRunnable.Stop();
-                startActivity(new Intent(getApplicationContext(), LoginActivity.class));
-                finish();
-            }
-        });
+        lobbyActivity = this;
         
         if(WordleClient.GetCurrentPlayer() != null)
         {
@@ -110,8 +89,29 @@ public class LobbyActivity extends AppCompatActivity
         lobbyListView = new LobbyListView(context, playerInfoList);
         recycledLobbyView.setAdapter(lobbyListView);
         
-        lobbyThread = new Thread(new LobbyRunnable(this));
-        lobbyThread.start();
+        new Thread(new PlayerListRunnable(this)).start();
+        
+        Button backToGameSelectButton = findViewById(R.id.backToGameSelectButton);
+        Button logoutButton = findViewById(R.id.logoutButton);
+        
+        backToGameSelectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                System.out.println("Pressed exit lobby button.");
+                PlayerListRunnable.Stop();
+                new Thread(new BackToGameSelectRunnable(lobbyActivity)).start();
+            }
+        });
+        
+        logoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                PlayerListRunnable.Stop();
+                new Thread(new LogoutRunnable(lobbyActivity)).start();
+            }
+        });
     }
     
     @SuppressLint("NotifyDataSetChanged")
@@ -147,14 +147,22 @@ public class LobbyActivity extends AppCompatActivity
     
     public void BackToGameSelect()
     {
-        LobbyRunnable.Stop();
+        System.out.println("Start of BackToGameSelect function");
+        PlayerListRunnable.Stop();
+        LogoutRunnable.Stop();
+        BackToGameSelectRunnable.Stop();
         startActivity(new Intent(getApplicationContext(), GameSelectActivity.class));
         finish();
+        System.out.println("End of BackToGameSelect function");
     }
     
-    public void CannotExitLobby()
+    public void Logout()
     {
-        System.err.println("Cannot exit lobby.");
+        PlayerListRunnable.Stop();
+        LogoutRunnable.Stop();
+        BackToGameSelectRunnable.Stop();
+        startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+        finish();
     }
     
     public void NoPlayers()

@@ -2,8 +2,6 @@ package com.yildizsoft.wordlehub.game.online;
 
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.client.WordleTask;
-import com.yildizsoft.wordlehub.client.WordleTaskResult;
-import com.yildizsoft.wordlehub.client.WordleTaskType;
 
 import java.util.Arrays;
 
@@ -25,28 +23,39 @@ public class GameSelectRunnable implements Runnable
     @Override
     public void run()
     {
-        WordleClient.AddNewTask(new WordleTask(WordleTaskType.ENTER_LOBBY, Arrays.asList(constLetterMode, letterCount)));
+        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.ENTER_LOBBY, Arrays.asList(constLetterMode, letterCount)));
         
-        while(shouldRun)
+        shouldRun = true;
+        
+        while(shouldRun && taskID != -1)
         {
             try
             {
-                Thread.sleep(500);
+                Thread.sleep(WordleClient.THREAD_SLEEP_DURATION);
             }
             catch(InterruptedException e)
             {
                 throw new RuntimeException(e);
             }
             
-            if(!WordleClient.IsTaskResultsEmpty())
+            WordleTask.Result taskResult = WordleClient.GetTaskResult(taskID);
+            
+            if(taskResult != null)
             {
-                if(WordleClient.GetLastTaskResult() == WordleTaskResult.ENTER_LOBBY_SUCCESS)
+                if(taskResult.getType() == WordleTask.ResultType.ENTER_LOBBY_SUCCESS)
+                {
+                    System.out.println("Enter lobby successful.");
                     gameSelectActivity.runOnUiThread(gameSelectActivity::GoToLobby);
-                
-                else gameSelectActivity.runOnUiThread(gameSelectActivity::GoToLogin);
-                
-                WordleClient.RemoveLastTaskResult();
-                return;
+                }
+                else if(taskResult.getType() == WordleTask.ResultType.ENTER_LOBBY_FAIL)
+                {
+                    gameSelectActivity.runOnUiThread(gameSelectActivity::GoToLogin);
+                }
+                else
+                {
+                    System.err.println("Unknown task result '" + taskResult + "' in GameSelectRunnable, exiting.");
+                }
+                shouldRun = false;
             }
         }
     }

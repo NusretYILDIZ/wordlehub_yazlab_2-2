@@ -24,6 +24,8 @@ public class GameSelectActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_select);
         
+        WordleClient.FlushTaskList();
+        
         gameSelectActivity = this;
         
         LinearLayout gamemodeSelectView = findViewById(R.id.gamemodeSelectView);
