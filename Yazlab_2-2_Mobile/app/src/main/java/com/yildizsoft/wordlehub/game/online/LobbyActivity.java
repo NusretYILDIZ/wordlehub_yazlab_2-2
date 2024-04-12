@@ -147,13 +147,12 @@ public class LobbyActivity extends AppCompatActivity
     
     public void BackToGameSelect()
     {
-        System.out.println("Start of BackToGameSelect function");
         PlayerListRunnable.Stop();
         LogoutRunnable.Stop();
         BackToGameSelectRunnable.Stop();
+        
         startActivity(new Intent(getApplicationContext(), GameSelectActivity.class));
         finish();
-        System.out.println("End of BackToGameSelect function");
     }
     
     public void Logout()
@@ -161,6 +160,7 @@ public class LobbyActivity extends AppCompatActivity
         PlayerListRunnable.Stop();
         LogoutRunnable.Stop();
         BackToGameSelectRunnable.Stop();
+        
         startActivity(new Intent(getApplicationContext(), LoginActivity.class));
         finish();
     }
@@ -168,6 +168,7 @@ public class LobbyActivity extends AppCompatActivity
     public void NoPlayers()
     {
         System.out.println("No players.");
+        
         TextView noPlayersText = findViewById(R.id.noPlayerText);
         noPlayersText.setVisibility(View.VISIBLE);
         recycledLobbyView.setVisibility(View.GONE);

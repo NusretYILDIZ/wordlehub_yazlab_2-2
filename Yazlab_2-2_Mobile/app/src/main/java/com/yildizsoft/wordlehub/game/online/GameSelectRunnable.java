@@ -44,7 +44,6 @@ public class GameSelectRunnable implements Runnable
             {
                 if(taskResult.getType() == WordleTask.ResultType.ENTER_LOBBY_SUCCESS)
                 {
-                    System.out.println("Enter lobby successful.");
                     gameSelectActivity.runOnUiThread(gameSelectActivity::GoToLobby);
                 }
                 else if(taskResult.getType() == WordleTask.ResultType.ENTER_LOBBY_FAIL)

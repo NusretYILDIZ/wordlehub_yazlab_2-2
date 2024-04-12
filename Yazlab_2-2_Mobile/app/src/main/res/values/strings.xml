@@ -18,7 +18,7 @@
     <string name="connecting_to_server">Sunucuya bağlanılıyor…</string>
     <string name="select_gamemode">Oyun Modu Seç</string>
     <string name="normal_mode">Normal Mod</string>
-    <string name="restricted_letter_mode">Kısıtlı Harf Modu</string>
+    <string name="restricted_letter_mode">Sabit Harfli Mod</string>
     <string name="select_word_length_text">Kelime Uzunluğu Seç</string>
     <string name="guess_4_letter_word">4 Harfli Kelime Bul</string>
     <string name="guess_5_letter_word">5 Harfli Kelime Bul</string>

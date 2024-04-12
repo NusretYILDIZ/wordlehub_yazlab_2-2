@@ -43,7 +43,9 @@ public class ServerAddressDialog extends DialogFragment
                 
                 int portInt = Integer.parseInt(port.getText().toString());
                 
-                if(portInt >= 0 && portInt <= 65535 && !ip.getText().toString().isEmpty()) serverSelectActivity.ConnectToTheServer(ip.getText().toString(), portInt);
+                if(portInt >= 0 && portInt <= 65535 && !ip.getText().toString().isEmpty())
+                    serverSelectActivity.runOnUiThread(() -> serverSelectActivity.ConnectToTheServer(ip.getText().toString(), portInt));
+                
                 dialog.dismiss();
             }
         });

@@ -274,7 +274,7 @@ public class WordleClientHandler implements Runnable
     public void LogMessage(String msg)
     {
         PlayerInfo playerInfo = OnlinePlayers.GetOnlinePlayerByID(this.id);
-        System.out.println('[' + this.id + (playerInfo == null ? "] " : " (" + playerInfo.getUsername() + ")]") + msg);
+        System.out.println('[' + this.id + (playerInfo == null ? "] " : " (" + playerInfo.getUsername() + ")] ") + msg);
     }
     
     public void LogError(String msg)

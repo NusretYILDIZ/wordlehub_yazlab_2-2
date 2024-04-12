@@ -24,42 +24,18 @@ public class ServerSelectRunnable implements Runnable
     @Override
     public void run()
     {
-        System.out.println("Started new ServerSelectRunnable.");
         long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.CONNECT_TO_SERVER, Arrays.asList(serverIP, String.valueOf(serverPort))));
 
         while(shouldRun && taskID != -1)
         {
-            System.out.println("Inside of run.");
-            
             try
             {
                 Thread.sleep(WordleClient.THREAD_SLEEP_DURATION);
             }
             catch(InterruptedException e)
             {
-                System.err.println("SplashScreenRunnable cannot wait.");
                 throw new RuntimeException(e);
             }
-
-            /*if(!WordleClient.IsTaskResultsEmpty())
-            {
-                if(WordleClient.GetLastTaskResult() == WordleTask.ResultType.CONNECT_TO_SERVER_SUCCESS)
-                {
-                    WordleClient.RemoveLastTaskResult();
-                    splashActivity.runOnUiThread(splashActivity::DismissWaitDialog);
-                    splashActivity.runOnUiThread(splashActivity::GoToLoginActivity);
-                    shouldRun = false;
-                    //return;
-                }
-                else
-                {
-                    WordleClient.RemoveLastTaskResult();
-                    splashActivity.runOnUiThread(splashActivity::DismissWaitDialog);
-                    splashActivity.runOnUiThread(splashActivity::ConnectionErrorDialog);
-                    shouldRun = false;
-                    //return;
-                }
-            }*/
             
             WordleTask.Result taskResult = WordleClient.GetTaskResult(taskID);
             
@@ -82,8 +58,6 @@ public class ServerSelectRunnable implements Runnable
                 shouldRun = false;
             }
         }
-        
-        System.out.println("Exiting ServerSelectRunnable.");
     }
     
     public static void Stop()

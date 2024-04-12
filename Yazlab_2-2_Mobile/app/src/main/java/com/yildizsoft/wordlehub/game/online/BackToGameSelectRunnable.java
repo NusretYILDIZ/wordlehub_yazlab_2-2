@@ -16,11 +16,7 @@ public class BackToGameSelectRunnable implements Runnable
     @Override
     public void run()
     {
-        System.out.println("[BackToGameSelectRunnable] Start of run function.");
-        
         long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.EXIT_LOBBY, null));
-        if(taskID == -1) System.err.println("[BackToGameSelectRunnable] TaskID is invalid.");
-        
         shouldRun = true;
         
         while(shouldRun && taskID != -1)
@@ -40,7 +36,6 @@ public class BackToGameSelectRunnable implements Runnable
             {
                 if(taskResult.getType() == WordleTask.ResultType.EXIT_LOBBY_SUCCESS)
                 {
-                    System.out.println("[BackToGameSelectRunnable] Exit lobby success.");
                     lobbyActivity.runOnUiThread(lobbyActivity::BackToGameSelect);
                 }
                 else
@@ -50,8 +45,6 @@ public class BackToGameSelectRunnable implements Runnable
                 shouldRun = false;
             }
         }
-        
-        System.out.println("[BackToGameSelectRunnable] End of run function.");
     }
     
     public static void Stop()
