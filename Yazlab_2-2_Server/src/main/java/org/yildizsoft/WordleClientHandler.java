@@ -158,6 +158,10 @@ public class WordleClientHandler implements Runnable
         case "PLAYER_LIST":
             PlayerListTask(tokens);
             break;
+            
+        case "SEND_GAME_REQUEST":
+            SendGameRequestTask(tokens);
+            break;
         }
     }
     
@@ -269,6 +273,12 @@ public class WordleClientHandler implements Runnable
             clientPrinter.println("LOGIN_REQUIRED");
             LogError("Oturum açmadan oyuncu listesini görmeye çalışıyor.");
         }
+    }
+    
+    public void SendGameRequestTask(List<String> tokens)
+    {
+        clientPrinter.println("SUCCESS");
+        // TODO: Handle the game request properly.
     }
     
     public void LogMessage(String msg)

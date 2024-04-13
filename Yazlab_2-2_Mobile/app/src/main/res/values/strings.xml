@@ -38,4 +38,5 @@
     <string name="back_to_game_select_text">Oyun Seçimine Dön</string>
     <string name="back_sign"><![CDATA[<]]></string>
     <string name="logout_text">Oturumu Kapat</string>
+    <string name="ok_text">Tamam</string>
 </resources>

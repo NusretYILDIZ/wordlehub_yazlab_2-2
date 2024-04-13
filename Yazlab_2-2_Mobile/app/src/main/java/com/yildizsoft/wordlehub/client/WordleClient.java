@@ -86,12 +86,12 @@ public class WordleClient implements Runnable
             {
                 WordleTask task = tasks.get(i);
 
-                if(task.getStatus() == WordleTask.Status.WAITING)
+                if(task.getStatus() != WordleTask.Status.COMPLETED)
                 {
                     //tasks.get(i).setStatus(WordleTask.Status.IN_PROGRESS);
                     SetTaskStatus(task, WordleTask.Status.IN_PROGRESS);
                     HandleTask(task);
-                    SetTaskStatus(task, WordleTask.Status.COMPLETED);
+                    //SetTaskStatus(task, WordleTask.Status.COMPLETED);
                     //tasks.get(i).setStatus(WordleTask.Status.DONE);
                     //wordleTasks.remove(i);
                 }
@@ -240,6 +240,14 @@ public class WordleClient implements Runnable
         case PLAYER_LIST:
             PlayerListTask(wordleTask);
             break;
+            
+        case SEND_GAME_REQUEST:
+            SendGameRequestTask(wordleTask);
+            break;
+            
+        case WAIT_GAME_REQUEST_RESPONSE:
+            WaitGameRequestResponseTask(wordleTask);
+            break;
         }
     }
     
@@ -252,12 +260,16 @@ public class WordleClient implements Runnable
         
         if(result) SetTaskResult(wordleTask, WordleTask.ResultType.CONNECT_TO_SERVER_SUCCESS, null);
         else SetTaskResult(wordleTask, WordleTask.ResultType.CONNECT_TO_SERVER_FAIL, null);
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void DisconnectTask(WordleTask wordleTask)
     {
         SendMessageToServer(CreateMessageFromTask(wordleTask));
         StopClient();
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void SignUpTask(WordleTask wordleTask)
@@ -284,6 +296,8 @@ public class WordleClient implements Runnable
                 SetTaskResult(wordleTask, WordleTask.ResultType.SIGNUP_FAIL_OTHER, null);
             //AddTaskResult(WordleTask.ResultType.SIGNUP_FAIL_OTHER);
         }
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void LoginTask(WordleTask wordleTask)
@@ -317,6 +331,8 @@ public class WordleClient implements Runnable
             
             else SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_FAIL_OTHER, null); //AddTaskResult(WordleTask.ResultType.LOGIN_FAIL_OTHER);
         }
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void LogoutTask(WordleTask wordleTask)
@@ -329,6 +345,8 @@ public class WordleClient implements Runnable
             SetTaskResult(wordleTask, WordleTask.ResultType.LOGOUT_SUCCESS, null);
         
         else SetTaskResult(wordleTask, WordleTask.ResultType.LOGOUT_FAIL, null);
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void EnterLobbyTask(WordleTask wordleTask)
@@ -342,6 +360,8 @@ public class WordleClient implements Runnable
             //AddTaskResult(WordleTask.ResultType.ENTER_LOBBY_SUCCESS);
         
         else SetTaskResult(wordleTask, WordleTask.ResultType.ENTER_LOBBY_FAIL, null); //AddTaskResult(WordleTask.ResultType.ENTER_LOBBY_FAIL);
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void ExitLobbyTask(WordleTask wordleTask)
@@ -355,6 +375,8 @@ public class WordleClient implements Runnable
             //AddTaskResult(WordleTask.ResultType.EXIT_LOBBY_SUCCESS);
         
         else SetTaskResult(wordleTask, WordleTask.ResultType.EXIT_LOBBY_FAIL, null); //AddTaskResult(WordleTask.ResultType.EXIT_LOBBY_FAIL);
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void PlayerListTask(WordleTask wordleTask)
@@ -383,7 +405,62 @@ public class WordleClient implements Runnable
             
             SetTaskResult(wordleTask, WordleTask.ResultType.PLAYER_LIST_SUCCESS, tokens);
         }
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
+    
+    protected static void SendGameRequestTask(WordleTask wordleTask)
+    {
+        SendMessageToServer(CreateMessageFromTask(wordleTask));
+        String response = WaitForResponse();
+        System.out.println("Send game request response: " + response);
+        
+        if(response == null)
+            SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_OTHER, null);
+        
+        else if(response.startsWith("ALREADY_REQUESTED"))
+            SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_ALREADY_REQUESTED, null);
+        
+        else if(response.startsWith("NO_LONGER_ONLINE"))
+            SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_NO_LONGER_ONLINE, null);
+        
+        else if(response.startsWith("FAIL_OTHER"))
+            SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_OTHER, null);
+        
+        else
+        {
+            SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_SUCCESS, null);
+        }
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+    }
+    
+    public static void WaitGameRequestResponseTask(WordleTask wordleTask)
+    {
+        try
+        {
+            if(clientReader.ready())
+            {
+                String response = WaitForResponse();
+                System.out.println("Wait game request response response: " + response);
+                
+                if(response != null && response.startsWith("GAME_REQUEST_ACCEPTED"))
+                    SetTaskResult(wordleTask, WordleTask.ResultType.GAME_REQUEST_ACCEPTED, null);
+                
+                else if(response != null && response.startsWith("GAME_REQUEST_REJECTED"))
+                    SetTaskResult(wordleTask, WordleTask.ResultType.GAME_REQUEST_REJECTED, null);
+                
+                else System.err.println("Unhandled edge case in WaitGameRequestResponseTask, response: " + response);
+                
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+        }
+        catch(IOException e)
+        {
+            System.err.println("An error has occurred while waiting game request response.\n" + e);
+        }
+    }
+    
     
     public static void RemoveCompletedTasks()
     {

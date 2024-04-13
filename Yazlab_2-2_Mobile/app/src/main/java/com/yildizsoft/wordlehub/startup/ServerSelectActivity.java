@@ -7,12 +7,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.yildizsoft.wordlehub.R;
 import com.yildizsoft.wordlehub.client.WordleClient;
+import com.yildizsoft.wordlehub.dialog.LoadingDialog;
 import com.yildizsoft.wordlehub.login.LoginActivity;
 
 public class ServerSelectActivity extends AppCompatActivity
 {
     protected Thread               splashMain;
-    protected WaitConnectionDialog waitConnectionDialog;
+    protected LoadingDialog        loadingDialog;
     protected ServerSelectActivity serverSelectActivity;
     
     @Override
@@ -57,8 +58,8 @@ public class ServerSelectActivity extends AppCompatActivity
     
     public void ConnectToTheServer(String ip, int port)
     {
-        waitConnectionDialog = new WaitConnectionDialog(serverSelectActivity);
-        waitConnectionDialog.Show();
+        loadingDialog = new LoadingDialog(serverSelectActivity, "Sunucuya bağlanılıyor...");
+        loadingDialog.Show();
         
         splashMain = new Thread(new ServerSelectRunnable(serverSelectActivity, ip, port));
         splashMain.start();
@@ -87,6 +88,6 @@ public class ServerSelectActivity extends AppCompatActivity
     
     public void DismissWaitDialog()
     {
-        waitConnectionDialog.Dismiss();
+        loadingDialog.Dismiss();
     }
 }

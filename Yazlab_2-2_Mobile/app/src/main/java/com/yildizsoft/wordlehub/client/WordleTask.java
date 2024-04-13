@@ -130,6 +130,14 @@ public class WordleTask
         PLAYER_LIST_FAIL_NO_PLAYERS,
         PLAYER_LIST_FAIL_LOGIN_REQUIRED,
         PLAYER_LIST_FAIL_OTHER,
+        SEND_GAME_REQUEST_SUCCESS,
+        SEND_GAME_REQUEST_FAIL_ALREADY_REQUESTED,
+        SEND_GAME_REQUEST_FAIL_NO_LONGER_ONLINE,
+        SEND_GAME_REQUEST_FAIL_OTHER,
+        NEW_REQUEST_FOUND,
+        GAME_REQUEST_ACCEPTED,
+        GAME_REQUEST_REJECTED,
+        GAME_STARTS,
     }
     
     public enum Type
@@ -142,6 +150,11 @@ public class WordleTask
         ENTER_LOBBY,
         EXIT_LOBBY,
         PLAYER_LIST,
+        SEND_GAME_REQUEST,
+        LISTEN_TO_GAME_REQUESTS,
+        WAIT_GAME_REQUEST_RESPONSE,
+        ACCEPT_GAME_REQUEST,
+        REJECT_GAME_REQUEST,
     }
     
     public enum Status

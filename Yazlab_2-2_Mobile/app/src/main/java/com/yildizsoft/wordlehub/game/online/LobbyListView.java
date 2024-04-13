@@ -19,11 +19,13 @@ public class LobbyListView extends RecyclerView.Adapter<LobbyListView.LobbyViewH
 {
     private LayoutInflater layoutInflater;
     private List<PlayerInfo> playerList;
+    private final LobbyActivity lobbyActivity;
     
-    public LobbyListView(Context context, List<PlayerInfo> playerList)
+    public LobbyListView(LobbyActivity lobbyActivity, List<PlayerInfo> playerList)
     {
-        this.layoutInflater = LayoutInflater.from(context);
+        this.layoutInflater = LayoutInflater.from(lobbyActivity);
         this.playerList = playerList;
+        this.lobbyActivity = lobbyActivity;
     }
     
     @NonNull
@@ -31,7 +33,7 @@ public class LobbyListView extends RecyclerView.Adapter<LobbyListView.LobbyViewH
     @Override
     public LobbyViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup viewGroup, int i)
     {
-        return new LobbyViewHolder(layoutInflater.inflate(R.layout.lobby_list_item, viewGroup, false));
+        return new LobbyViewHolder(layoutInflater.inflate(R.layout.lobby_list_item, viewGroup, false), lobbyActivity);
     }
     
     @Override
@@ -66,19 +68,20 @@ public class LobbyListView extends RecyclerView.Adapter<LobbyListView.LobbyViewH
         private final TextView playerStatusText;
         private final Button sendRequestButton;
         
-        public LobbyViewHolder(@NonNull @NotNull View itemView)
+        public LobbyViewHolder(@NonNull @NotNull View itemView, LobbyActivity lobbyActivity)
         {
             super(itemView);
-            usernameText = itemView.findViewById(R.id.usernameText);
-            playerStatusText = itemView.findViewById(R.id.playerStatusText);
-            sendRequestButton = itemView.findViewById(R.id.sendRequestButton);
+            this.usernameText = itemView.findViewById(R.id.usernameText);
+            this.playerStatusText = itemView.findViewById(R.id.playerStatusText);
+            this.sendRequestButton = itemView.findViewById(R.id.sendRequestButton);
             
             sendRequestButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v)
                 {
-                    System.out.println("Send game request to " + usernameText);
+                    System.out.println("Send game request to " + usernameText.getText().toString());
                     // TODO: Implement sending actual game requests.
+                    LobbyActivity.SendGameRequest(lobbyActivity, usernameText.getText().toString());
                 }
             });
         }

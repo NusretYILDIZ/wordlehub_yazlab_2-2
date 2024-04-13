@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.yildizsoft.wordlehub.R;
 import com.yildizsoft.wordlehub.client.*;
+import com.yildizsoft.wordlehub.dialog.InfoDialog;
+import com.yildizsoft.wordlehub.dialog.LoadingDialog;
 import com.yildizsoft.wordlehub.login.LoginActivity;
 
 import java.util.ArrayList;
@@ -24,8 +26,8 @@ public class LobbyActivity extends AppCompatActivity
     LobbyListView lobbyListView;
     List<PlayerInfo> playerInfoList = new ArrayList<>();
     RecyclerView recycledLobbyView;
-    Context context;
     LobbyActivity lobbyActivity;
+    LoadingDialog loadingDialog;
     
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -80,13 +82,12 @@ public class LobbyActivity extends AppCompatActivity
             lobbyNameText.setText(lobbyName);
         }
         
-        context = this;
         recycledLobbyView = findViewById(R.id.playerList);
         
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(lobbyActivity);
         recycledLobbyView.setLayoutManager(linearLayoutManager);
         recycledLobbyView.addItemDecoration(new DividerItemDecoration(recycledLobbyView.getContext(), linearLayoutManager.getOrientation()));
-        lobbyListView = new LobbyListView(context, playerInfoList);
+        lobbyListView = new LobbyListView(lobbyActivity, playerInfoList);
         recycledLobbyView.setAdapter(lobbyListView);
         
         new Thread(new PlayerListRunnable(this)).start();
@@ -112,6 +113,11 @@ public class LobbyActivity extends AppCompatActivity
                 new Thread(new LogoutRunnable(lobbyActivity)).start();
             }
         });
+    }
+    
+    public static void SendGameRequest(LobbyActivity lobbyActivity, String username)
+    {
+        new Thread(new SendGameRequestRunnable(lobbyActivity, username)).start();
     }
     
     @SuppressLint("NotifyDataSetChanged")
@@ -178,5 +184,42 @@ public class LobbyActivity extends AppCompatActivity
     {
         startActivity(new Intent(getApplicationContext(), LoginActivity.class));
         finish();
+    }
+    
+    public void PendingRequestDialog(String username)
+    {
+        loadingDialog = new LoadingDialog(lobbyActivity, '"' + username + "\" isimli oyuncunun isteği kabul etmesi bekleniyor...");
+        loadingDialog.Show();
+    }
+    
+    public void DismissPendingRequestDialog()
+    {
+        loadingDialog.Dismiss();
+    }
+    
+    public void AlreadyRequestedDialog()
+    {
+        new InfoDialog(lobbyActivity, "Bu oyuncuya zaten davet gönderilmiş.").Show();
+    }
+    
+    public void PlayerNoLongerOnlineDialog()
+    {
+        new InfoDialog(lobbyActivity, "Bu oyuncu artık çevrimiçi değil.").Show();
+    }
+    
+    public void NewRequestReceivedDialog(String username)
+    {
+        new NewRequestReceivedDialog(lobbyActivity, username);
+    }
+    
+    public void GoToGameStart()
+    {
+        System.out.println("Game is starting...");
+        // TODO: Start the game.
+    }
+    
+    public void RejectInfoDialog(String username)
+    {
+        new InfoDialog(lobbyActivity, '"' + username + "\" kişisinin oyun davetini reddettin.").Show();
     }
 }
