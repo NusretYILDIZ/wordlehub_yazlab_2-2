@@ -19,6 +19,7 @@ public class NewRequestReceivedDialog
     
     public void Show()
     {
+        CountDownTimer[] timer = new CountDownTimer[1];
         AlertDialog.Builder builder = new AlertDialog.Builder(lobbyActivity);
         
         builder.setTitle("Yeni Oyun İsteği");
@@ -39,6 +40,7 @@ public class NewRequestReceivedDialog
             {
                 // TODO: Reject the invitation.
                 new Thread(new ProcessGameRequestRunnable(lobbyActivity, username, false)).start();
+                timer[0].cancel();
                 dialog.dismiss();
             }
         });
@@ -51,7 +53,7 @@ public class NewRequestReceivedDialog
             {
                 final Button rejectButton = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_NEGATIVE);
                 
-                new CountDownTimer(10000, 500)
+                timer[0] = new CountDownTimer(10000, 500)
                 {
                     @SuppressLint("SetTextI18n")
                     @Override

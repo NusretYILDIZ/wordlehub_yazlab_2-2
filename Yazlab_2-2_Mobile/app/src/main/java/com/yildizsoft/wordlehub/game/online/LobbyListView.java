@@ -48,6 +48,12 @@ public class LobbyListView extends RecyclerView.Adapter<LobbyListView.LobbyViewH
             lobbyViewHolder.playerStatusText.setTextColor(0xFFFF0000);
             lobbyViewHolder.sendRequestButton.setVisibility(View.INVISIBLE);
         }
+        else if(player.getStatus() == PlayerStatus.WAITING_REQUEST)
+        {
+            lobbyViewHolder.playerStatusText.setText(R.string.waiting_request_text);
+            lobbyViewHolder.playerStatusText.setTextColor(0xFFFF7300);
+            lobbyViewHolder.sendRequestButton.setVisibility(View.INVISIBLE);
+        }
         else
         {
             lobbyViewHolder.playerStatusText.setText(R.string.online_text);

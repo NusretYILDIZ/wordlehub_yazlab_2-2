@@ -5,10 +5,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
+import java.util.concurrent.*;
 
 public class WordleClientHandler implements Runnable
 {
@@ -22,6 +20,7 @@ public class WordleClientHandler implements Runnable
     
     private ScheduledFuture<?> scheduledFuture;
     private ScheduledExecutorService scheduledExecutorService;
+    public static Semaphore clientMutex = new Semaphore(1);
     
     public WordleClientHandler(Socket socket)
     {
@@ -55,7 +54,7 @@ public class WordleClientHandler implements Runnable
             {
                 try
                 {
-                    clientWriter.write("mrb");
+                    clientWriter.write('n');
                     
                     if(networkError)
                     {
@@ -80,6 +79,36 @@ public class WordleClientHandler implements Runnable
                             scheduledFuture = scheduledExecutorService.schedule(this::Disconnect, 10, TimeUnit.SECONDS);
                         }
                         return;
+                    }
+                }
+                
+                List<ClientTask> tasks = null;
+                try
+                {
+                    ClientTask.taskMutex.acquire();
+                    tasks = new ArrayList<>(ClientTask.clientTasks);
+                }
+                catch(InterruptedException e)
+                {
+                    LogError("Client görev listesi kopyalanırken kesinti meydana geldi.\n" + e);
+                }
+                finally
+                {
+                    ClientTask.taskMutex.release();
+                }
+                
+                if(tasks == null)
+                {
+                    LogError("Client görev listesi boş.");
+                    return;
+                }
+                
+                for(ClientTask task : tasks)
+                {
+                    if(task.getClientID().equals(this.id) && task.getStatus() != ClientTask.Status.COMPLETED)
+                    {
+                        ClientTask.SetTaskStatus(task, ClientTask.Status.IN_PROGRESS);
+                        HandleClientTask(task);
                     }
                 }
                 
@@ -126,6 +155,15 @@ public class WordleClientHandler implements Runnable
         LogMessage("Bağlantı sonlandırıldı.");
     }
     
+    public void HandleClientTask(ClientTask task)
+    {
+        if(clientPrinter != null)
+        {
+            PrintToClient(task.getMessage());
+            ClientTask.SetTaskStatus(task, ClientTask.Status.COMPLETED);
+        }
+    }
+    
     public void HandleClientRequest(String req) throws IOException
     {
         LogMessage(req);
@@ -162,6 +200,14 @@ public class WordleClientHandler implements Runnable
         case "SEND_GAME_REQUEST":
             SendGameRequestTask(tokens);
             break;
+            
+        case "ACCEPT_GAME_REQUEST":
+            AcceptGameRequestTask(tokens);
+            break;
+        
+        case "REJECT_GAME_REQUEST":
+            RejectGameRequestTask(tokens);
+            break;
         }
     }
     
@@ -170,15 +216,15 @@ public class WordleClientHandler implements Runnable
         int res = MongoManager.AddUser(tokens.getFirst(), tokens.get(1));
         if(res == 1)
         {
-            clientPrinter.println("SIGNUP_FAIL_USER_ALREADY_EXISTS");
+            PrintToClient("SIGNUP_FAIL_USER_ALREADY_EXISTS");
         }
         else if(res == 0)
         {
-            clientPrinter.println("SIGNUP_SUCCESS");
+            PrintToClient("SIGNUP_SUCCESS");
         }
         else
         {
-            clientPrinter.println("SIGNUP_FAIL_OTHER");
+            PrintToClient("SIGNUP_FAIL_OTHER");
         }
     }
     
@@ -186,18 +232,23 @@ public class WordleClientHandler implements Runnable
     {
         if(!MongoManager.UsernameExists(tokens.getFirst()))
         {
-            clientPrinter.println("LOGIN_FAIL_USERNAME_NOT_FOUND");
+            PrintToClient("LOGIN_FAIL_USERNAME_NOT_FOUND");
             LogError("Yanlış kullanıcı adı girdi ve oturum açamadı.");
         }
         else if(!MongoManager.UserExists(tokens.getFirst(), tokens.get(1)))
         {
-            clientPrinter.println("LOGIN_FAIL_WRONG_PASSWORD");
+            PrintToClient("LOGIN_FAIL_WRONG_PASSWORD");
             LogError("Yanlış şifre girdi ve oturum açamadı.");
+        }
+        else if(OnlinePlayers.IsPlayerOnline(tokens.getFirst()))
+        {
+            PrintToClient("LOGIN_FAIL_USER_ALREADY_LOGGED_IN");
+            LogError('"' + tokens.getFirst() + "\" zaten oturum açmış.");
         }
         else
         {
             OnlinePlayers.NewOnlinePlayer(new PlayerInfo(this.id, tokens.getFirst()));
-            clientPrinter.println("LOGIN_SUCCESS\"" + this.id + '"' + tokens.getFirst());
+            PrintToClient("LOGIN_SUCCESS\"" + this.id + '"' + tokens.getFirst());
             LogMessage('"' + tokens.getFirst() + "\" kullanıcı adıyla oturum açtı.");
         }
     }
@@ -205,7 +256,7 @@ public class WordleClientHandler implements Runnable
     public void LogoutTask(List<String> tokens)
     {
         OnlinePlayers.RemoveOnlinePlayer(this.id);
-        clientPrinter.println("LOGOUT_SUCCESS");
+        PrintToClient("LOGOUT_SUCCESS");
         LogMessage("Oturum kapatıldı.");
     }
     
@@ -220,12 +271,12 @@ public class WordleClientHandler implements Runnable
             PlayerLobby lobby = PlayerLobby.valueOf((constLetter.equalsIgnoreCase("NO") ? "NO" : "WITH") + "_CONST_" + letterCount + "_LETTER");
             
             OnlinePlayers.SetLobbyOfPlayer(player, lobby);
-            clientPrinter.println("ENTER_LOBBY_SUCCESS\"" + lobby);
+            PrintToClient("ENTER_LOBBY_SUCCESS\"" + lobby);
             LogMessage("Başarıyla odaya girdi.");
         }
         else
         {
-            clientPrinter.println("LOGIN_REQUIRED");
+            PrintToClient("LOGIN_REQUIRED");
             LogError("Oturum açmadan odaya girmeye çalışıyor.");
         }
     }
@@ -235,12 +286,12 @@ public class WordleClientHandler implements Runnable
         if(OnlinePlayers.GetOnlinePlayerByID(this.id) != null && OnlinePlayers.GetOnlinePlayerByID(this.id).getLobby() != null)
         {
             OnlinePlayers.SetLobbyOfPlayer(OnlinePlayers.GetOnlinePlayerByID(this.id), null);
-            clientPrinter.println("EXIT_LOBBY_SUCCESS");
+            PrintToClient("EXIT_LOBBY_SUCCESS");
             LogMessage("Odadan çıktı ve oda seçim ekranına döndü.");
         }
         else
         {
-            clientPrinter.println("EXIT_LOBBY_FAIL");
+            PrintToClient("EXIT_LOBBY_FAIL");
             LogMessage("Odadan çıkamadı.");
         }
     }
@@ -255,7 +306,7 @@ public class WordleClientHandler implements Runnable
             
             if(players.isEmpty())
             {
-                clientPrinter.println("NO_PLAYERS");
+                PrintToClient("NO_PLAYERS");
                 //LogMessage(player.getLobby() + " odasında oyuncu yok.");
             }
             else
@@ -264,22 +315,77 @@ public class WordleClientHandler implements Runnable
                 
                 for(PlayerInfo playerInLobby : players) builder.append('"').append(playerInLobby.getUsername()).append('"').append(playerInLobby.getStatus());
                 
-                clientPrinter.println(builder);
+                PrintToClient(builder.toString());
                 //LogMessage(player.getLobby() + " odasındaki oyuncular: " + builder);
             }
         }
         else
         {
-            clientPrinter.println("LOGIN_REQUIRED");
+            PrintToClient("LOGIN_REQUIRED");
             LogError("Oturum açmadan oyuncu listesini görmeye çalışıyor.");
         }
     }
     
     public void SendGameRequestTask(List<String> tokens)
     {
-        clientPrinter.println("SUCCESS");
+        if(Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getPlayingWith() != null && Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getPlayingWith().equals(tokens.getFirst()))
+        {
+            PrintToClient("ALREADY_REQUESTED");
+            return;
+        }
+        
         // TODO: Handle the game request properly.
+        PlayerInfo destPlayer = OnlinePlayers.GetOnlinePlayerByName(tokens.getFirst());
+        
+        if(destPlayer != null)
+        {
+            ClientTask.AddNewTask(new ClientTask(destPlayer.getId(), "NEW_REQUEST\"" + Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getUsername()));
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setPlayingWith(tokens.getFirst());
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setStatus(PlayerStatus.WAITING_REQUEST);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setStatus(PlayerStatus.WAITING_REQUEST);
+            PrintToClient("SUCCESS");
+        }
+        else
+        {
+            PrintToClient("NO_LONGER_ONLINE");
+        }
     }
+    
+    public void AcceptGameRequestTask(List<String> tokens)
+    {
+    
+    }
+    
+    public void RejectGameRequestTask(List<String> tokens)
+    {
+        PlayerInfo destPlayer = OnlinePlayers.GetOnlinePlayerByName(tokens.getFirst());
+        
+        if(destPlayer != null)
+        {
+            ClientTask.AddNewTask(new ClientTask(destPlayer.getId(), "GAME_REQUEST_REJECTED\"" + Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getUsername()));
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setPlayingWith(null);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setStatus(PlayerStatus.ONLINE);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setPlayingWith(null);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setStatus(PlayerStatus.ONLINE);
+        }
+        
+        PrintToClient("GAME_REQUEST_REJECTED\"" + Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).getUsername());
+    }
+    
+    public void PrintToClient(String msg)
+    {
+        try
+        {
+            clientMutex.acquire();
+            clientPrinter.println(msg);
+            clientMutex.release();
+        }
+        catch(InterruptedException e)
+        {
+            System.err.println("PrintToClient has been interrupted.\n" + e);
+        }
+    }
+    
     
     public void LogMessage(String msg)
     {
@@ -289,6 +395,7 @@ public class WordleClientHandler implements Runnable
     
     public void LogError(String msg)
     {
-        System.err.println('[' + this.id + "] " + msg);
+        PlayerInfo playerInfo = OnlinePlayers.GetOnlinePlayerByID(this.id);
+        System.err.println('[' + this.id + (playerInfo == null ? "] " : " (" + playerInfo.getUsername() + ")] ") + msg);
     }
 }

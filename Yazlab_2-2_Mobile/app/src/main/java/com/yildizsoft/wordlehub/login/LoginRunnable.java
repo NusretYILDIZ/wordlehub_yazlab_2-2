@@ -56,6 +56,10 @@ public class LoginRunnable implements Runnable
                 {
                     loginActivity.runOnUiThread(() -> loginActivity.LoginFailedDialog(LoginFailedDialog.WRONG_PASSWORD));
                 }
+                else if(taskResult.getType() == WordleTask.ResultType.LOGIN_FAIL_USER_ALREADY_LOGGED_IN)
+                {
+                    loginActivity.runOnUiThread(loginActivity::AlreadyLoggedIn);
+                }
                 else if(taskResult.getType() == WordleTask.ResultType.LOGIN_FAIL_OTHER)
                 {
                     loginActivity.runOnUiThread(() -> loginActivity.LoginFailedDialog(LoginFailedDialog.OTHER));

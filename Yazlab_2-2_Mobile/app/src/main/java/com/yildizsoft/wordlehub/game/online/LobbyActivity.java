@@ -91,6 +91,7 @@ public class LobbyActivity extends AppCompatActivity
         recycledLobbyView.setAdapter(lobbyListView);
         
         new Thread(new PlayerListRunnable(this)).start();
+        new Thread(new ListenToGameRequestsRunnable(this)).start();
         
         Button backToGameSelectButton = findViewById(R.id.backToGameSelectButton);
         Button logoutButton = findViewById(R.id.logoutButton);
@@ -190,11 +191,18 @@ public class LobbyActivity extends AppCompatActivity
     {
         loadingDialog = new LoadingDialog(lobbyActivity, '"' + username + "\" isimli oyuncunun isteği kabul etmesi bekleniyor...");
         loadingDialog.Show();
+        
     }
     
-    public void DismissPendingRequestDialog()
+    public void RequestAccepted()
     {
         loadingDialog.Dismiss();
+    }
+    
+    public void RequestRejectedDialog(String username)
+    {
+        loadingDialog.Dismiss();
+        new InfoDialog(lobbyActivity, '"' + username + "\" oyun davetinizi reddetti.").Show();
     }
     
     public void AlreadyRequestedDialog()
@@ -209,7 +217,8 @@ public class LobbyActivity extends AppCompatActivity
     
     public void NewRequestReceivedDialog(String username)
     {
-        new NewRequestReceivedDialog(lobbyActivity, username);
+        System.out.println("NewRequestReceivedDialog");
+        new NewRequestReceivedDialog(lobbyActivity, username).Show();
     }
     
     public void GoToGameStart()
@@ -220,6 +229,7 @@ public class LobbyActivity extends AppCompatActivity
     
     public void RejectInfoDialog(String username)
     {
-        new InfoDialog(lobbyActivity, '"' + username + "\" kişisinin oyun davetini reddettin.").Show();
+        new InfoDialog(lobbyActivity, '"' + username + "\" kişisinin oyun davetini reddettiniz.").Show();
+        new Thread(new ListenToGameRequestsRunnable(this)).start();
     }
 }

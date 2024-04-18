@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.yildizsoft.wordlehub.R;
 import com.yildizsoft.wordlehub.client.WordleClient;
+import com.yildizsoft.wordlehub.dialog.InfoDialog;
 import com.yildizsoft.wordlehub.game.online.GameSelectActivity;
 import com.yildizsoft.wordlehub.signup.SignUpActivity;
 
@@ -92,6 +93,11 @@ public class LoginActivity extends AppCompatActivity
     public void LoginFailedDialog(int failCode)
     {
         new LoginFailedDialog(failCode).show(getSupportFragmentManager(), "loginFail");
+    }
+    
+    public void AlreadyLoggedIn()
+    {
+        new InfoDialog(loginActivity, "Bu oyuncu zaten oturum açmış.").Show();
     }
     
     public void GoToGameSelection()

@@ -31,6 +31,7 @@ public class ListenToGameRequestsRunnable implements Runnable
             }
             
             WordleTask.Result taskResult = WordleClient.GetTaskResult(taskID);
+            //System.out.println("[ListenToGameRequestsRunnable] TaskResult = " + taskResult);
             
             if(taskResult != null)
             {

@@ -3,6 +3,8 @@ package com.yildizsoft.wordlehub.game.online;
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.client.WordleTask;
 
+import java.util.Collections;
+
 public class ProcessGameRequestRunnable implements Runnable
 {
     private final LobbyActivity lobbyActivity;
@@ -20,7 +22,7 @@ public class ProcessGameRequestRunnable implements Runnable
     @Override
     public void run()
     {
-        long taskID = WordleClient.AddNewTask(new WordleTask((this.accept ? WordleTask.Type.ACCEPT_GAME_REQUEST : WordleTask.Type.REJECT_GAME_REQUEST), null));
+        long taskID = WordleClient.AddNewTask(new WordleTask((this.accept ? WordleTask.Type.ACCEPT_GAME_REQUEST : WordleTask.Type.REJECT_GAME_REQUEST), Collections.singletonList(this.username)));
         shouldRun = true;
         
         while(shouldRun && taskID != -1)

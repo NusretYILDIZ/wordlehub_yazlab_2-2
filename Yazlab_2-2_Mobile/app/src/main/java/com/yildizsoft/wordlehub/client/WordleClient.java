@@ -8,10 +8,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 
 public class WordleClient implements Runnable
@@ -248,6 +245,15 @@ public class WordleClient implements Runnable
         case WAIT_GAME_REQUEST_RESPONSE:
             WaitGameRequestResponseTask(wordleTask);
             break;
+            
+        case LISTEN_TO_GAME_REQUESTS:
+            ListenToGameRequestsTask(wordleTask);
+            break;
+            
+        case ACCEPT_GAME_REQUEST:
+        case REJECT_GAME_REQUEST:
+            ProcessGameRequestTask(wordleTask);
+            break;
         }
     }
     
@@ -329,6 +335,9 @@ public class WordleClient implements Runnable
                 SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_FAIL_WRONG_PASSWORD, null);
                 //AddTaskResult(WordleTask.ResultType.LOGIN_FAIL_WRONG_PASSWORD);
             
+            else if(response.equals("LOGIN_FAIL_USER_ALREADY_LOGGED_IN"))
+                SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_FAIL_USER_ALREADY_LOGGED_IN, null);
+            
             else SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_FAIL_OTHER, null); //AddTaskResult(WordleTask.ResultType.LOGIN_FAIL_OTHER);
         }
         
@@ -397,7 +406,7 @@ public class WordleClient implements Runnable
             SetTaskResult(wordleTask, WordleTask.ResultType.PLAYER_LIST_FAIL_NO_PLAYERS, null);
             //AddTaskResult(WordleTask.ResultType.PLAYER_LIST_FAIL_NO_PLAYERS);
         
-        else
+        else if(response.startsWith("PLAYERS_IN_LOBBY"))
         {
             System.out.println("Oyuncu listesi alındı.");
             List<String> tokens = new ArrayList<>(Arrays.asList(response.split("\"")));
@@ -459,6 +468,54 @@ public class WordleClient implements Runnable
         {
             System.err.println("An error has occurred while waiting game request response.\n" + e);
         }
+    }
+    
+    public static void ListenToGameRequestsTask(WordleTask wordleTask)
+    {
+        try
+        {
+            if(clientReader.ready())
+            {
+                String response = clientReader.readLine();
+                System.out.println("Listen to game requests response: " + response);
+                
+                String[] tokens = null;
+                
+                if(response != null) tokens = response.split("\"");
+                
+                if(tokens != null && tokens[0].startsWith("NEW_REQUEST"))
+                {
+                    SetTaskResult(wordleTask, WordleTask.ResultType.NEW_REQUEST_FOUND, Collections.singletonList(tokens[1]));
+                    SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+                }
+            }
+        }
+        catch(IOException e)
+        {
+            System.err.println("An error has occurred while listening to game requests.\n" + e);
+        }
+    }
+    
+    public static void ProcessGameRequestTask(WordleTask wordleTask)
+    {
+        SendMessageToServer(CreateMessageFromTask(wordleTask));
+        String response = WaitForResponse();
+        System.out.println("Process game request response: " + response);
+        
+        String[] tokens = null;
+        if(response != null) tokens = response.split("\"");
+        else System.err.println("[ProcessGameRequestTask] Response is null.");
+        
+        if(tokens != null)
+        {
+            if(tokens[0].startsWith("GAME_REQUEST_ACCEPTED"))
+                SetTaskResult(wordleTask, WordleTask.ResultType.GAME_REQUEST_ACCEPTED, Collections.singletonList(tokens[1]));
+            
+            else //if(tokens[0].startsWith("GAME_REQUEST_REJECTED"))
+                SetTaskResult(wordleTask, WordleTask.ResultType.GAME_REQUEST_REJECTED, Collections.singletonList(tokens[1]));
+        }
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     

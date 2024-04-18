@@ -46,24 +46,28 @@ public class SendGameRequestRunnable implements Runnable
                 else if(taskResult.getType() == WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_ALREADY_REQUESTED)
                 {
                     lobbyActivity.runOnUiThread(lobbyActivity::AlreadyRequestedDialog);
+                    Stop();
                 }
                 else if(taskResult.getType() == WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_NO_LONGER_ONLINE)
                 {
                     lobbyActivity.runOnUiThread(lobbyActivity::PlayerNoLongerOnlineDialog);
+                    Stop();
                 }
                 else if(taskResult.getType() == WordleTask.ResultType.GAME_REQUEST_ACCEPTED)
                 {
-                    lobbyActivity.runOnUiThread(lobbyActivity::DismissPendingRequestDialog);
+                    lobbyActivity.runOnUiThread(lobbyActivity::RequestAccepted);
+                    Stop();
                 }
                 else if(taskResult.getType() == WordleTask.ResultType.GAME_REQUEST_REJECTED)
                 {
-                    lobbyActivity.runOnUiThread(lobbyActivity::DismissPendingRequestDialog);
+                    lobbyActivity.runOnUiThread(() -> lobbyActivity.RequestRejectedDialog(destinationUsername));
+                    Stop();
                 }
                 else
                 {
                     System.err.println("Unknown task result '" + taskResult + "' in SendGameRequestRunnable, exiting.");
+                    Stop();
                 }
-                Stop();
             }
         }
     }
