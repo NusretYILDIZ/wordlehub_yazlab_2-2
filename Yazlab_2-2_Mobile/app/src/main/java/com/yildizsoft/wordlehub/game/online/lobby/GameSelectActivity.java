@@ -1,4 +1,4 @@
-package com.yildizsoft.wordlehub.game.online;
+package com.yildizsoft.wordlehub.game.online.lobby;
 
 import android.content.Intent;
 import android.view.View;

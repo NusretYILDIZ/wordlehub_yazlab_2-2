@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:paddingBottom="100dp"
+              android:paddingTop="50dp"
+              android:gravity="center"
+>
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="30dp"
+            android:layout_marginBottom="50dp"
+            android:textAlignment="center"
+            android:textColor="@color/skyBlue"
+            android:textStyle="bold"
+            android:textSize="25sp"
+            android:text="@string/enter_word_for_opponent_text"
+    />
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:id="@+id/wordInput"
+            android:orientation="vertical">
+        <!--<include layout="@layout/word_container_4_letters"/>-->
+    </LinearLayout>
+
+    <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="50dp"
+            android:id="@+id/verifyButton"
+            android:backgroundTint="@color/skyBlue"
+            android:text="@string/verify_text"
+    />
+
+    <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+    />
+
+    <include layout="@layout/gameplay_keyboard"/>
+
+</LinearLayout>

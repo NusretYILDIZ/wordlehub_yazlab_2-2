@@ -8,7 +8,7 @@
         android:orientation="vertical"
         android:paddingVertical="50dp"
         android:paddingHorizontal="20dp"
-        tools:context=".game.online.LobbyActivity">
+        tools:context=".game.online.lobby.LobbyActivity">
 <!--
     <LinearLayout
             android:layout_width="match_parent"

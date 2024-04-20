@@ -1,6 +1,5 @@
-package com.yildizsoft.wordlehub.game.online;
+package com.yildizsoft.wordlehub.game.online.lobby;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

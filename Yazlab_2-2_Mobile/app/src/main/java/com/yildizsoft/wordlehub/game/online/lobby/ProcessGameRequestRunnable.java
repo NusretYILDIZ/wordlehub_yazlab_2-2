@@ -1,4 +1,4 @@
-package com.yildizsoft.wordlehub.game.online;
+package com.yildizsoft.wordlehub.game.online.lobby;
 
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.client.WordleTask;

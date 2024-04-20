@@ -1,7 +1,5 @@
 package com.yildizsoft.wordlehub.client;
 
-import com.yildizsoft.wordlehub.game.online.LogoutRunnable;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -253,6 +251,10 @@ public class WordleClient implements Runnable
         case ACCEPT_GAME_REQUEST:
         case REJECT_GAME_REQUEST:
             ProcessGameRequestTask(wordleTask);
+            break;
+            
+        case SEND_WORD:
+            SendWordTask(wordleTask);
             break;
         }
     }
@@ -516,6 +518,21 @@ public class WordleClient implements Runnable
         }
         
         SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+    }
+    
+    public static void SendWordTask(WordleTask wordleTask)
+    {
+        SendMessageToServer(CreateMessageFromTask(wordleTask));
+        String response = WaitForResponse();
+        System.out.println("Send word task response: " + response);
+        
+        if(response != null)
+        {
+            if(response.startsWith("INVALID_WORD"))
+                SetTaskResult(wordleTask, WordleTask.ResultType.INVALID_WORD, null);
+            
+            SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+        }
     }
     
     

@@ -12,7 +12,7 @@ import android.os.Bundle;
 import com.yildizsoft.wordlehub.R;
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.dialog.InfoDialog;
-import com.yildizsoft.wordlehub.game.online.GameSelectActivity;
+import com.yildizsoft.wordlehub.game.online.lobby.GameSelectActivity;
 import com.yildizsoft.wordlehub.signup.SignUpActivity;
 
 public class LoginActivity extends AppCompatActivity

@@ -14,22 +14,25 @@
             tools:remove="android:appComponentFactory"
             tools:targetApi="28">
         <activity
-                android:name="com.yildizsoft.wordlehub.game.online.LobbyActivity"
+                android:name=".game.online.gameplay.EnterWordActivity"
                 android:exported="false"/>
         <activity
-                android:name="com.yildizsoft.wordlehub.game.online.GameSelectActivity"
+                android:name=".game.online.lobby.LobbyActivity"
                 android:exported="false"/>
         <activity
-                android:name="com.yildizsoft.wordlehub.startup.ServerSelectActivity"
+                android:name=".game.online.lobby.GameSelectActivity"
                 android:exported="false"/>
         <activity
-                android:name="com.yildizsoft.wordlehub.signup.SignUpActivity"
+                android:name=".startup.ServerSelectActivity"
                 android:exported="false"/>
         <activity
-                android:name="com.yildizsoft.wordlehub.login.LoginActivity"
+                android:name=".signup.SignUpActivity"
                 android:exported="false"/>
         <activity
-                android:name="com.yildizsoft.wordlehub.startup.SplashScreenActivity"
+                android:name=".login.LoginActivity"
+                android:exported="false"/>
+        <activity
+                android:name=".startup.SplashScreenActivity"
                 android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

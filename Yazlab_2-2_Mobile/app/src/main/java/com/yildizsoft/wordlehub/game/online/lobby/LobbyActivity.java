@@ -1,7 +1,6 @@
-package com.yildizsoft.wordlehub.game.online;
+package com.yildizsoft.wordlehub.game.online.lobby;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +14,7 @@ import com.yildizsoft.wordlehub.R;
 import com.yildizsoft.wordlehub.client.*;
 import com.yildizsoft.wordlehub.dialog.InfoDialog;
 import com.yildizsoft.wordlehub.dialog.LoadingDialog;
+import com.yildizsoft.wordlehub.game.online.gameplay.EnterWordActivity;
 import com.yildizsoft.wordlehub.login.LoginActivity;
 
 import java.util.ArrayList;
@@ -197,6 +197,7 @@ public class LobbyActivity extends AppCompatActivity
     public void RequestAccepted()
     {
         loadingDialog.Dismiss();
+        GoToGameStart();
     }
     
     public void RequestRejectedDialog(String username)
@@ -224,7 +225,9 @@ public class LobbyActivity extends AppCompatActivity
     public void GoToGameStart()
     {
         System.out.println("Game is starting...");
-        // TODO: Start the game.
+        PlayerListRunnable.Stop();
+        startActivity(new Intent(getApplicationContext(), EnterWordActivity.class));
+        finish();
     }
     
     public void RejectInfoDialog(String username)

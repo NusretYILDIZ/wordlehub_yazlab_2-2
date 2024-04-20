@@ -1,4 +1,4 @@
-package com.yildizsoft.wordlehub.game.online;
+package com.yildizsoft.wordlehub.game.online.lobby;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -31,6 +31,7 @@ public class NewRequestReceivedDialog
             {
                 // TODO: Accept the invitation.
                 new Thread(new ProcessGameRequestRunnable(lobbyActivity, username, true)).start();
+                timer[0].cancel();
                 dialog.dismiss();
             }
         });

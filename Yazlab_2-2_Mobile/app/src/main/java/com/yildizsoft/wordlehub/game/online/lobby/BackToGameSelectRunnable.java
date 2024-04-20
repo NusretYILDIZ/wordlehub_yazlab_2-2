@@ -1,14 +1,14 @@
-package com.yildizsoft.wordlehub.game.online;
+package com.yildizsoft.wordlehub.game.online.lobby;
 
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.client.WordleTask;
 
-public class ListenToGameRequestsRunnable implements Runnable
+public class BackToGameSelectRunnable implements Runnable
 {
     private final LobbyActivity lobbyActivity;
     private static boolean shouldRun = true;
     
-    public ListenToGameRequestsRunnable(LobbyActivity lobbyActivity)
+    public BackToGameSelectRunnable(LobbyActivity lobbyActivity)
     {
         this.lobbyActivity = lobbyActivity;
     }
@@ -16,7 +16,7 @@ public class ListenToGameRequestsRunnable implements Runnable
     @Override
     public void run()
     {
-        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.LISTEN_TO_GAME_REQUESTS, null));
+        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.EXIT_LOBBY, null));
         shouldRun = true;
         
         while(shouldRun && taskID != -1)
@@ -31,15 +31,18 @@ public class ListenToGameRequestsRunnable implements Runnable
             }
             
             WordleTask.Result taskResult = WordleClient.GetTaskResult(taskID);
-            //System.out.println("[ListenToGameRequestsRunnable] TaskResult = " + taskResult);
             
             if(taskResult != null)
             {
-                if(taskResult.getType() == WordleTask.ResultType.NEW_REQUEST_FOUND)
+                if(taskResult.getType() == WordleTask.ResultType.EXIT_LOBBY_SUCCESS)
                 {
-                    lobbyActivity.runOnUiThread(() -> lobbyActivity.NewRequestReceivedDialog(taskResult.getParameters().get(0)));
+                    lobbyActivity.runOnUiThread(lobbyActivity::BackToGameSelect);
                 }
-                Stop();
+                else
+                {
+                    System.err.println("Unknown task result '" + taskResult + "' in BackToGameSelectRunnable, exiting.");
+                }
+                shouldRun = false;
             }
         }
     }

@@ -164,7 +164,7 @@ public class WordleClientHandler implements Runnable
         }
     }
     
-    public void HandleClientRequest(String req) throws IOException
+    public void HandleClientRequest(String req)
     {
         LogMessage(req);
         List<String> tokens = new ArrayList<>(Arrays.asList(req.split("\"")));
@@ -342,6 +342,7 @@ public class WordleClientHandler implements Runnable
             ClientTask.AddNewTask(new ClientTask(destPlayer.getId(), "NEW_REQUEST\"" + Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getUsername()));
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setPlayingWith(tokens.getFirst());
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setStatus(PlayerStatus.WAITING_REQUEST);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setPlayingWith(Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getUsername());
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setStatus(PlayerStatus.WAITING_REQUEST);
             PrintToClient("SUCCESS");
         }
@@ -353,7 +354,18 @@ public class WordleClientHandler implements Runnable
     
     public void AcceptGameRequestTask(List<String> tokens)
     {
-    
+        PlayerInfo destPlayer = OnlinePlayers.GetOnlinePlayerByName(tokens.getFirst());
+        PlayerInfo thisPlayer = OnlinePlayers.GetOnlinePlayerByID(this.id);
+        
+        if(destPlayer != null && thisPlayer != null)
+        {
+            ClientTask.AddNewTask(new ClientTask(destPlayer.getId(), "GAME_REQUEST_ACCEPTED\"" + thisPlayer.getUsername()));
+            thisPlayer.setStatus(PlayerStatus.IN_GAME);
+            OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId()).setStatus(PlayerStatus.IN_GAME);
+            
+            PrintToClient("GAME_REQUEST_ACCEPTED\"" + OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId()).getUsername());
+            new Thread(new GameManager(thisPlayer, destPlayer)).start();
+        }
     }
     
     public void RejectGameRequestTask(List<String> tokens)

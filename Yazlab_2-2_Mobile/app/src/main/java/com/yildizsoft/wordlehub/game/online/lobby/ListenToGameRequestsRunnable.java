@@ -1,14 +1,14 @@
-package com.yildizsoft.wordlehub.game.online;
+package com.yildizsoft.wordlehub.game.online.lobby;
 
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.client.WordleTask;
 
-public class LogoutRunnable implements Runnable
+public class ListenToGameRequestsRunnable implements Runnable
 {
     private final LobbyActivity lobbyActivity;
     private static boolean shouldRun = true;
     
-    public LogoutRunnable(LobbyActivity lobbyActivity)
+    public ListenToGameRequestsRunnable(LobbyActivity lobbyActivity)
     {
         this.lobbyActivity = lobbyActivity;
     }
@@ -16,8 +16,7 @@ public class LogoutRunnable implements Runnable
     @Override
     public void run()
     {
-        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.LOGOUT, null));
-        
+        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.LISTEN_TO_GAME_REQUESTS, null));
         shouldRun = true;
         
         while(shouldRun && taskID != -1)
@@ -32,18 +31,15 @@ public class LogoutRunnable implements Runnable
             }
             
             WordleTask.Result taskResult = WordleClient.GetTaskResult(taskID);
+            //System.out.println("[ListenToGameRequestsRunnable] TaskResult = " + taskResult);
             
             if(taskResult != null)
             {
-                if(taskResult.getType() == WordleTask.ResultType.LOGOUT_SUCCESS)
+                if(taskResult.getType() == WordleTask.ResultType.NEW_REQUEST_FOUND)
                 {
-                    lobbyActivity.runOnUiThread(lobbyActivity::Logout);
+                    lobbyActivity.runOnUiThread(() -> lobbyActivity.NewRequestReceivedDialog(taskResult.getParameters().get(0)));
                 }
-                else
-                {
-                    System.err.println("Unknown task result '" + taskResult + "' in LogoutRunnable, exiting.");
-                }
-                shouldRun = false;
+                Stop();
             }
         }
     }

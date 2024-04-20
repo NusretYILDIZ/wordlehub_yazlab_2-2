@@ -1,22 +1,22 @@
-package com.yildizsoft.wordlehub.game.online;
+package com.yildizsoft.wordlehub.game.online.gameplay;
 
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.client.WordleTask;
 
-public class BackToGameSelectRunnable implements Runnable
+public class EnterWordRunnable implements Runnable
 {
-    private final LobbyActivity lobbyActivity;
+    private final EnterWordActivity enterWordActivity;
     private static boolean shouldRun = true;
     
-    public BackToGameSelectRunnable(LobbyActivity lobbyActivity)
+    public EnterWordRunnable(EnterWordActivity enterWordActivity)
     {
-        this.lobbyActivity = lobbyActivity;
+        this.enterWordActivity = enterWordActivity;
     }
     
     @Override
     public void run()
     {
-        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.EXIT_LOBBY, null));
+        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.LISTEN_TO_ENTER_WORD_TIMER, null));
         shouldRun = true;
         
         while(shouldRun && taskID != -1)
@@ -34,15 +34,11 @@ public class BackToGameSelectRunnable implements Runnable
             
             if(taskResult != null)
             {
-                if(taskResult.getType() == WordleTask.ResultType.EXIT_LOBBY_SUCCESS)
+                if(taskResult.getType() == WordleTask.ResultType.DRAW)
                 {
-                    lobbyActivity.runOnUiThread(lobbyActivity::BackToGameSelect);
+                
                 }
-                else
-                {
-                    System.err.println("Unknown task result '" + taskResult + "' in BackToGameSelectRunnable, exiting.");
-                }
-                shouldRun = false;
+                Stop();
             }
         }
     }
