@@ -208,6 +208,10 @@ public class WordleClientHandler implements Runnable
         case "REJECT_GAME_REQUEST":
             RejectGameRequestTask(tokens);
             break;
+            
+        case "SEND_WORD":
+            GameManager.AddTask(new GameManager.Task(this.id, task, tokens));
+            break;
         }
     }
     
@@ -364,7 +368,14 @@ public class WordleClientHandler implements Runnable
             OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId()).setStatus(PlayerStatus.IN_GAME);
             
             PrintToClient("GAME_REQUEST_ACCEPTED\"" + OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId()).getUsername());
-            new Thread(new GameManager(thisPlayer, destPlayer)).start();
+            
+            int wordLength = 0;
+            if(thisPlayer.getLobby() == PlayerLobby.NO_CONST_4_LETTER || thisPlayer.getLobby() == PlayerLobby.WITH_CONST_4_LETTER) wordLength = 4;
+            else if(thisPlayer.getLobby() == PlayerLobby.NO_CONST_5_LETTER || thisPlayer.getLobby() == PlayerLobby.WITH_CONST_5_LETTER) wordLength = 5;
+            else if(thisPlayer.getLobby() == PlayerLobby.NO_CONST_6_LETTER || thisPlayer.getLobby() == PlayerLobby.WITH_CONST_6_LETTER) wordLength = 6;
+            else if(thisPlayer.getLobby() == PlayerLobby.NO_CONST_7_LETTER || thisPlayer.getLobby() == PlayerLobby.WITH_CONST_7_LETTER) wordLength = 7;
+            
+            new Thread(new GameManager(thisPlayer, destPlayer, wordLength)).start();
         }
     }
     

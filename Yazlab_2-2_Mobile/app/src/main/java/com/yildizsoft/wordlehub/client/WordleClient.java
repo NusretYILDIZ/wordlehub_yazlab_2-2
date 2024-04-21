@@ -531,6 +531,9 @@ public class WordleClient implements Runnable
             if(response.startsWith("INVALID_WORD"))
                 SetTaskResult(wordleTask, WordleTask.ResultType.INVALID_WORD, null);
             
+            else if(response.startsWith("VALID_WORD"))
+                SetTaskResult(wordleTask, WordleTask.ResultType.VALID_WORD, null);
+            
             SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
         }
     }

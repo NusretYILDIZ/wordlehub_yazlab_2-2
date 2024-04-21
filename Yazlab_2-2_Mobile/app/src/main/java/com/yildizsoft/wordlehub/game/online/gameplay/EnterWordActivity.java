@@ -366,7 +366,10 @@ public class EnterWordActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                new Thread(new VerifyEnterWordRunnable(enterWordActivity, GetWord())).start();
+                if(word.size() == wordLength)
+                    new Thread(new VerifyEnterWordRunnable(enterWordActivity, GetWord())).start();
+                
+                else new InfoDialog(enterWordActivity, wordLength + " harfli bir kelime girdiğinizden emin olun.").Show();
             }
         });
     }
