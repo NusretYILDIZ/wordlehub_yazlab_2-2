@@ -5,16 +5,16 @@ import com.yildizsoft.wordlehub.client.WordleTask;
 
 import java.util.Collections;
 
-public class VerifyEnterWordRunnable implements Runnable
+public class VerifyGuessWordRunnable implements Runnable
 {
-    private final EnterWordActivity enterWordActivity;
-    private static boolean shouldRun = true;
+    private final GuessWordActivity guessWordActivity;
+    private static boolean          shouldRun = true;
     private String word;
     
-    public VerifyEnterWordRunnable(EnterWordActivity enterWordActivity, String word)
+    public VerifyGuessWordRunnable(GuessWordActivity guessWordActivity, String word)
     {
-        this.enterWordActivity = enterWordActivity;
-        this.word = word;
+        this.guessWordActivity = guessWordActivity;
+        this.word              = word;
     }
     
     @Override
@@ -42,12 +42,11 @@ public class VerifyEnterWordRunnable implements Runnable
             {
                 if(taskResult.getType() == WordleTask.ResultType.INVALID_WORD)
                 {
-                    enterWordActivity.runOnUiThread(enterWordActivity::InvalidWord);
+                    guessWordActivity.runOnUiThread(guessWordActivity::InvalidWord);
                 }
                 else if(taskResult.getType() == WordleTask.ResultType.VALID_WORD)
                 {
-                    enterWordActivity.runOnUiThread(enterWordActivity::ValidWord);
-                    new Thread(new EnterWordRunnable(enterWordActivity)).start();
+                    guessWordActivity.runOnUiThread(() -> guessWordActivity.ValidWord(taskResult.getParameters()));
                 }
                 else System.err.println("Unknown task result \"" + taskResult + "\" in VerifyEnterWordRunnable, exiting.");
                 

@@ -5,22 +5,23 @@
               android:layout_height="wrap_content"
               android:gravity="center_horizontal"
               android:paddingHorizontal="50dp"
-              android:layout_marginBottom="1dp"
+              android:layout_marginBottom="2dp"
 >
 
     <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/letter_bg"
             android:layout_marginEnd="1dp"
     >
         <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/letter_bg_default"
                 android:textAlignment="center"
                 android:id="@+id/letter1"
                 android:textSize="40sp"
+                android:textColor="@color/black"
         />
 
     </LinearLayout>
@@ -29,15 +30,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/letter_bg"
             android:layout_marginEnd="1dp"
     >
         <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/letter_bg_default"
                 android:textAlignment="center"
                 android:id="@+id/letter2"
                 android:textSize="40sp"
+                android:textColor="@color/black"
         />
 
     </LinearLayout>
@@ -46,15 +48,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/letter_bg"
             android:layout_marginEnd="1dp"
     >
         <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/letter_bg_default"
                 android:textAlignment="center"
                 android:id="@+id/letter3"
                 android:textSize="40sp"
+                android:textColor="@color/black"
         />
 
     </LinearLayout>
@@ -63,15 +66,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/letter_bg"
             android:layout_marginEnd="1dp"
     >
         <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/letter_bg_default"
                 android:textAlignment="center"
                 android:id="@+id/letter4"
                 android:textSize="40sp"
+                android:textColor="@color/black"
         />
 
     </LinearLayout>
@@ -80,15 +84,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/letter_bg"
             android:layout_marginEnd="1dp"
     >
         <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/letter_bg_default"
                 android:textAlignment="center"
                 android:id="@+id/letter5"
                 android:textSize="40sp"
+                android:textColor="@color/black"
         />
 
     </LinearLayout>
@@ -97,14 +102,15 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/letter_bg"
     >
         <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/letter_bg_default"
                 android:textAlignment="center"
                 android:id="@+id/letter6"
                 android:textSize="40sp"
+                android:textColor="@color/black"
         />
 
     </LinearLayout>

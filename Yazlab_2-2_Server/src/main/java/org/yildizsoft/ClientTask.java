@@ -8,7 +8,7 @@ import java.util.concurrent.Semaphore;
 public class ClientTask
 {
     public static List<ClientTask> clientTasks = new ArrayList<>();
-    public static Semaphore taskMutex = new Semaphore(1);
+    private static Semaphore taskMutex = new Semaphore(1);
     
     private static long taskCounter = 0;
     private long id;
@@ -83,6 +83,24 @@ public class ClientTask
         {
             throw new RuntimeException(e);
         }
+    }
+    
+    public static List<ClientTask> GetTasks()
+    {
+        List<ClientTask> tasks = null;
+        
+        try
+        {
+            taskMutex.acquire();
+            tasks = new ArrayList<>(clientTasks);
+            taskMutex.release();
+        }
+        catch(InterruptedException e)
+        {
+            System.err.println("ClientTask.GetTasks function has been interrupted.\n" + e);
+        }
+        
+        return tasks;
     }
     
     public static long AddNewTask(ClientTask newTask)

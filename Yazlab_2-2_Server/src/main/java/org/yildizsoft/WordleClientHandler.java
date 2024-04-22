@@ -18,9 +18,10 @@ public class WordleClientHandler implements Runnable
     private       String         id;
     private       int            failCount;
     
-    private ScheduledFuture<?> scheduledFuture;
-    private ScheduledExecutorService scheduledExecutorService;
+    private ScheduledFuture<?> scheduledFuture, conTestFuture;
+    private ScheduledExecutorService scheduledExecutorService, conTestService;
     public static Semaphore clientMutex = new Semaphore(1);
+    boolean networkError = false;
     
     public WordleClientHandler(Socket socket)
     {
@@ -37,7 +38,7 @@ public class WordleClientHandler implements Runnable
             clientPrinter = new PrintWriter(clientSocket.getOutputStream(), true);
             clientWriter  = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
             clientReader  = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            this.id = clientReader.readLine();
+            this.id       = clientReader.readLine();
         }
         catch(IOException e)
         {
@@ -45,16 +46,27 @@ public class WordleClientHandler implements Runnable
             shouldContinue = false;
         }
         LogMessage("Yeni bir client bağlandı. Client ID: " + this.id);
+        conTestService = Executors.newSingleThreadScheduledExecutor();
+        conTestFuture  = conTestService.scheduleAtFixedRate(this::TestConnection, 0, 1, TimeUnit.SECONDS);
         
-        boolean networkError = false;
         String line;
         while(shouldContinue)
         {
+            /*try
+            {
+                Thread.sleep(100);
+            }
+            catch(InterruptedException e)
+            {
+                throw new RuntimeException(e);
+            }*/
+            
             try
             {
-                try
+                /*try
                 {
-                    clientWriter.write('n');
+                    //System.out.println("[WordleClientHandler] Connection test.");
+                    clientWriter.write("test");
                     
                     if(networkError)
                     {
@@ -74,34 +86,33 @@ public class WordleClientHandler implements Runnable
                         //Disconnect();
                         if(!networkError)
                         {
-                            networkError = true;
+                            networkError             = true;
                             scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-                            scheduledFuture = scheduledExecutorService.schedule(this::Disconnect, 10, TimeUnit.SECONDS);
+                            scheduledFuture          = scheduledExecutorService.schedule(this::Disconnect, 10, TimeUnit.SECONDS);
                         }
                         return;
                     }
-                }
+                }*/
                 
-                List<ClientTask> tasks = null;
+                List<ClientTask> tasks = ClientTask.GetTasks(); /*null;
                 try
                 {
                     ClientTask.taskMutex.acquire();
                     tasks = new ArrayList<>(ClientTask.clientTasks);
+                    ClientTask.taskMutex.release();
                 }
                 catch(InterruptedException e)
                 {
                     LogError("Client görev listesi kopyalanırken kesinti meydana geldi.\n" + e);
-                }
-                finally
-                {
-                    ClientTask.taskMutex.release();
-                }
+                }*/
                 
                 if(tasks == null)
                 {
                     LogError("Client görev listesi boş.");
                     return;
                 }
+                
+                //System.out.println("Client tasks: " + tasks);
                 
                 for(ClientTask task : tasks)
                 {
@@ -114,15 +125,18 @@ public class WordleClientHandler implements Runnable
                 
                 if(this.failCount == 0)
                 {
-                    line = clientReader.readLine();
-                    if(line != null)
+                    if(clientReader.ready())
                     {
-                        if(line.equalsIgnoreCase("quit"))
+                        line = clientReader.readLine();
+                        if(line != null)
                         {
-                            Disconnect();
-                            return;
+                            if(line.equalsIgnoreCase("quit"))
+                            {
+                                Disconnect();
+                                return;
+                            }
+                            else HandleClientRequest(line);
                         }
-                        else HandleClientRequest(line);
                     }
                 }
             }
@@ -135,6 +149,42 @@ public class WordleClientHandler implements Runnable
         }
         
         //Disconnect();
+    }
+    
+    public void TestConnection()
+    {
+        try
+        {
+            //System.out.println("[WordleClientHandler] Connection test.");
+            clientWriter.write("test");
+            
+            if(networkError)
+            {
+                LogMessage("Tekrar bağlantı kuruldu.");
+                networkError = false;
+                if(scheduledFuture != null) scheduledFuture.cancel(false);
+                if(scheduledExecutorService != null) scheduledExecutorService.shutdownNow();
+            }
+        }
+        catch(IOException e)
+        {
+            this.failCount++;
+            
+            if(this.failCount >= 3)
+            {
+                LogError("Bağlantı kopmuş olabilir. Oturum 10 saniye içinde kapatılacak.");
+                //Disconnect();
+                if(!networkError)
+                {
+                    networkError = true;
+                    if(conTestFuture != null) conTestFuture.cancel(false);
+                    if(conTestService != null) conTestService.shutdownNow();
+                    scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+                    scheduledFuture          = scheduledExecutorService.schedule(this::Disconnect, 10, TimeUnit.SECONDS);
+                }
+                return;
+            }
+        }
     }
     
     public void Disconnect()
@@ -159,8 +209,10 @@ public class WordleClientHandler implements Runnable
     {
         if(clientPrinter != null)
         {
+            System.out.println("Handling client task...");
             PrintToClient(task.getMessage());
             ClientTask.SetTaskStatus(task, ClientTask.Status.COMPLETED);
+            System.out.println("Handled client task.");
         }
     }
     
@@ -180,11 +232,11 @@ public class WordleClientHandler implements Runnable
         case "LOGIN":
             LoginTask(tokens);
             break;
-            
+        
         case "LOGOUT":
             LogoutTask(tokens);
             break;
-            
+        
         case "ENTER_LOBBY":
             EnterLobbyTask(tokens);
             break;
@@ -192,15 +244,15 @@ public class WordleClientHandler implements Runnable
         case "EXIT_LOBBY":
             ExitLobbyTask(tokens);
             break;
-            
+        
         case "PLAYER_LIST":
             PlayerListTask(tokens);
             break;
-            
+        
         case "SEND_GAME_REQUEST":
             SendGameRequestTask(tokens);
             break;
-            
+        
         case "ACCEPT_GAME_REQUEST":
             AcceptGameRequestTask(tokens);
             break;
@@ -208,7 +260,7 @@ public class WordleClientHandler implements Runnable
         case "REJECT_GAME_REQUEST":
             RejectGameRequestTask(tokens);
             break;
-            
+        
         case "SEND_WORD":
             GameManager.AddTask(new GameManager.Task(this.id, task, tokens));
             break;
@@ -270,9 +322,9 @@ public class WordleClientHandler implements Runnable
         
         if(player != null)
         {
-            String constLetter = tokens.getFirst();
-            String letterCount = tokens.get(1);
-            PlayerLobby lobby = PlayerLobby.valueOf((constLetter.equalsIgnoreCase("NO") ? "NO" : "WITH") + "_CONST_" + letterCount + "_LETTER");
+            String      constLetter = tokens.getFirst();
+            String      letterCount = tokens.get(1);
+            PlayerLobby lobby       = PlayerLobby.valueOf((constLetter.equalsIgnoreCase("NO") ? "NO" : "WITH") + "_CONST_" + letterCount + "_LETTER");
             
             OnlinePlayers.SetLobbyOfPlayer(player, lobby);
             PrintToClient("ENTER_LOBBY_SUCCESS\"" + lobby);
@@ -338,7 +390,6 @@ public class WordleClientHandler implements Runnable
             return;
         }
         
-        // TODO: Handle the game request properly.
         PlayerInfo destPlayer = OnlinePlayers.GetOnlinePlayerByName(tokens.getFirst());
         
         if(destPlayer != null)
@@ -397,6 +448,7 @@ public class WordleClientHandler implements Runnable
     
     public void PrintToClient(String msg)
     {
+        //clientPrinter.println(msg);
         try
         {
             clientMutex.acquire();

@@ -14,6 +14,9 @@
             tools:remove="android:appComponentFactory"
             tools:targetApi="28">
         <activity
+                android:name=".game.online.gameplay.GuessWordActivity"
+                android:exported="false"/>
+        <activity
                 android:name=".game.online.gameplay.EnterWordActivity"
                 android:exported="false"/>
         <activity

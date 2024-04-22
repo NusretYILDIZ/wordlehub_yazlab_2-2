@@ -157,7 +157,10 @@ public class WordleClient implements Runnable
     {
         try
         {
-            return clientReader.readLine();
+            String line = clientReader.readLine();
+            line = line.replaceAll("test", "");
+            return line;
+            //return clientReader.readLine();
         }
         catch(IOException e)
         {
@@ -202,6 +205,8 @@ public class WordleClient implements Runnable
     
     public static void HandleTask(WordleTask wordleTask)
     {
+        System.out.println("Wordle task: " + CreateMessageFromTask(wordleTask));
+        
         switch(wordleTask.getTask())
         {
         case QUIT:
@@ -255,6 +260,10 @@ public class WordleClient implements Runnable
             
         case SEND_WORD:
             SendWordTask(wordleTask);
+            break;
+            
+        case LISTEN_TO_ENTER_WORD_TIMER:
+            ListenToEnterWordTimer(wordleTask);
             break;
         }
     }
@@ -456,14 +465,19 @@ public class WordleClient implements Runnable
                 System.out.println("Wait game request response response: " + response);
                 
                 if(response != null && response.startsWith("GAME_REQUEST_ACCEPTED"))
+                {
                     SetTaskResult(wordleTask, WordleTask.ResultType.GAME_REQUEST_ACCEPTED, null);
+                    SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+                }
                 
                 else if(response != null && response.startsWith("GAME_REQUEST_REJECTED"))
+                {
                     SetTaskResult(wordleTask, WordleTask.ResultType.GAME_REQUEST_REJECTED, null);
+                    SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+                }
                 
-                else System.err.println("Unhandled edge case in WaitGameRequestResponseTask, response: " + response);
+                //else System.err.println("Unhandled edge case in WaitGameRequestResponseTask, response: " + response);
                 
-                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
             }
         }
         catch(IOException e)
@@ -531,10 +545,42 @@ public class WordleClient implements Runnable
             if(response.startsWith("INVALID_WORD"))
                 SetTaskResult(wordleTask, WordleTask.ResultType.INVALID_WORD, null);
             
-            else if(response.startsWith("VALID_WORD"))
+            else if(response.equals("VALID_WORD"))
                 SetTaskResult(wordleTask, WordleTask.ResultType.VALID_WORD, null);
             
-            SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            else if(response.startsWith("VALID_WORD"))
+            {
+                List<String> tokens = new ArrayList<>(Arrays.asList(response.split("\"")));
+                tokens.remove(0);
+                
+                SetTaskResult(wordleTask, WordleTask.ResultType.VALID_WORD, tokens);
+            }
+        }
+        
+        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+    }
+    
+    public static void ListenToEnterWordTimer(WordleTask wordleTask)
+    {
+        try
+        {
+            if(clientReader.ready())
+            {
+                String response = clientReader.readLine();
+                System.out.println("Listen to enter word timer response: " + response);
+                
+                if(response != null)
+                {
+                    if(response.startsWith("START_GAME"))
+                        SetTaskResult(wordleTask, WordleTask.ResultType.GAME_STARTS, null);
+                }
+                
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+        }
+        catch(IOException e)
+        {
+            System.err.println("An error has occurred while listening to game server.\n" + e);
         }
     }
     

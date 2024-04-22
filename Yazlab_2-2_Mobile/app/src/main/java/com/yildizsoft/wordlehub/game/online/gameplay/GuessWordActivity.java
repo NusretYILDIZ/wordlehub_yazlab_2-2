@@ -1,13 +1,11 @@
 package com.yildizsoft.wordlehub.game.online.gameplay;
 
-import android.content.Intent;
-import android.text.Layout;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import androidx.appcompat.content.res.AppCompatResources;
 import com.yildizsoft.wordlehub.R;
 import com.yildizsoft.wordlehub.client.PlayerInfo;
 import com.yildizsoft.wordlehub.client.PlayerLobby;
@@ -17,23 +15,24 @@ import com.yildizsoft.wordlehub.dialog.InfoDialog;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnterWordActivity extends AppCompatActivity
+public class GuessWordActivity extends AppCompatActivity
 {
     List<Character> word = new ArrayList<>();
+    List<LinearLayout> guesses = new ArrayList<>();
+    List<List<TextView>> letterViews = new ArrayList<>();
     int wordLength = 0;
-    List<TextView> letterViews = new ArrayList<>();
-    EnterWordActivity enterWordActivity;
-    Button verifyButton;
+    int currentGuessIndex = 0;
+    GuessWordActivity guessWordActivity;
     
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_enter_word);
+        setContentView(R.layout.activity_guess_word);
         
         WordleClient.FlushTaskList();
         
-        enterWordActivity = this;
+        guessWordActivity = this;
         
         PlayerInfo player = WordleClient.GetCurrentPlayer();
         if(player != null)
@@ -65,16 +64,42 @@ public class EnterWordActivity extends AppCompatActivity
                 wordLength = 7;
             }
             
-            getLayoutInflater().inflate(layout, wordInput);
+            guesses.add(wordInput.findViewById(R.id.wordInput1));
+            guesses.add(wordInput.findViewById(R.id.wordInput2));
+            guesses.add(wordInput.findViewById(R.id.wordInput3));
+            guesses.add(wordInput.findViewById(R.id.wordInput4));
             
-            letterViews.add(findViewById(R.id.letter1));
-            letterViews.add(findViewById(R.id.letter2));
-            letterViews.add(findViewById(R.id.letter3));
-            letterViews.add(findViewById(R.id.letter4));
+            if(wordLength >= 5) guesses.add(wordInput.findViewById(R.id.wordInput5));
+            if(wordLength >= 6) guesses.add(wordInput.findViewById(R.id.wordInput6));
+            if(wordLength >= 7) guesses.add(wordInput.findViewById(R.id.wordInput7));
             
-            if(wordLength >= 5) letterViews.add(findViewById(R.id.letter5));
-            if(wordLength >= 6) letterViews.add(findViewById(R.id.letter6));
-            if(wordLength >= 7) letterViews.add(findViewById(R.id.letter7));
+            for(LinearLayout l : guesses)
+                System.out.print(l.toString() + ", ");
+            System.out.println();
+            
+            for(int i = 0; i < wordLength; i++)
+            {
+                getLayoutInflater().inflate(layout, guesses.get(i));
+                //View guessView = getLayoutInflater().inflate(layout, wordInput);
+                //guessView.setId(i);
+                //guesses.add((LinearLayout) guessView);
+            }
+            
+            for(int i = 0; i < wordLength; i++)
+            {
+                List<TextView> letterOfOneWord = new ArrayList<>();
+                
+                letterOfOneWord.add(guesses.get(i).findViewById(R.id.letter1));
+                letterOfOneWord.add(guesses.get(i).findViewById(R.id.letter2));
+                letterOfOneWord.add(guesses.get(i).findViewById(R.id.letter3));
+                letterOfOneWord.add(guesses.get(i).findViewById(R.id.letter4));
+                
+                if(wordLength >= 5) letterOfOneWord.add(guesses.get(i).findViewById(R.id.letter5));
+                if(wordLength >= 6) letterOfOneWord.add(guesses.get(i).findViewById(R.id.letter6));
+                if(wordLength >= 7) letterOfOneWord.add(guesses.get(i).findViewById(R.id.letter7));
+                
+                letterViews.add(letterOfOneWord);
+            }
         }
         
         
@@ -356,49 +381,32 @@ public class EnterWordActivity extends AppCompatActivity
             }
         });
         
-        /*LinearLayout enterButton = findViewById(R.id.enterButton);
+        LinearLayout enterButton = findViewById(R.id.enterButton);
         enterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v)
             {
-            
-            }
-        });*/
-        
-        verifyButton = findViewById(R.id.verifyButton);
-        verifyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-                if(word.size() == wordLength)
-                {
-                    verifyButton.setClickable(false);
-                    new Thread(new VerifyEnterWordRunnable(enterWordActivity, GetWord())).start();
-                }
-                
-                else new InfoDialog(enterWordActivity, wordLength + " harfli bir kelime girdiğinizden emin olun.").Show();
+                new Thread(new VerifyGuessWordRunnable(guessWordActivity, GetWord())).start();
             }
         });
     }
     
     public void InvalidWord()
     {
-        verifyButton.setClickable(true);
         new InfoDialog(this, "Girdiğiniz kelime geçerli bir kelime değil.").Show();
         ClearWord();
     }
     
-    public void ValidWord()
+    public void ValidWord(List<String> parameters)
     {
-        verifyButton.setClickable(false);
-        verifyButton.setText(R.string.waiting_opponent_text);
-    }
-    
-    public void StartActualGame()
-    {
-        VerifyEnterWordRunnable.Stop();
-        startActivity(new Intent(getApplicationContext(), GuessWordActivity.class));
-        finish();
+        List<Character> chars = new ArrayList<>();
+        for(String c : parameters)
+            chars.add(c.charAt(0));
+        
+        ColorizeWord(chars);
+        if(currentGuessIndex < wordLength - 1) currentGuessIndex++;
+        ClearWord();
+        System.out.println("currentGuessIndex = " + currentGuessIndex);
     }
     
     public String GetWord()
@@ -440,12 +448,27 @@ public class EnterWordActivity extends AppCompatActivity
         {
             if(i < word.size())
             {
-                letterViews.get(i).setText(GetChar(word.get(i)));
+                letterViews.get(currentGuessIndex).get(i).setText(GetChar(word.get(i)));
             }
             else
             {
-                letterViews.get(i).setText(R.string.letter_empty);
+                letterViews.get(currentGuessIndex).get(i).setText(R.string.letter_empty);
             }
+        }
+    }
+    
+    public void ColorizeWord(List<Character> results)
+    {
+        for(int i = 0; i < wordLength; i++)
+        {
+            letterViews.get(currentGuessIndex).get(i).setTextColor(0xFFFFFFFF);
+            
+            if(results.get(i) == 'C')
+                letterViews.get(currentGuessIndex).get(i).setBackground(AppCompatResources.getDrawable(this, R.drawable.letter_bg_correct));
+            else if(results.get(i) == 'M')
+                letterViews.get(currentGuessIndex).get(i).setBackground(AppCompatResources.getDrawable(this, R.drawable.letter_bg_misplaced));
+            else if(results.get(i) == '-')
+                letterViews.get(currentGuessIndex).get(i).setBackground(AppCompatResources.getDrawable(this, R.drawable.letter_bg_not_here));
         }
     }
     

@@ -34,9 +34,9 @@ public class EnterWordRunnable implements Runnable
             
             if(taskResult != null)
             {
-                if(taskResult.getType() == WordleTask.ResultType.DRAW)
+                if(taskResult.getType() == WordleTask.ResultType.GAME_STARTS)
                 {
-                
+                    enterWordActivity.runOnUiThread(enterWordActivity::StartActualGame);
                 }
                 Stop();
             }

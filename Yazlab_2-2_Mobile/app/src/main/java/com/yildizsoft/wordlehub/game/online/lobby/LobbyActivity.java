@@ -226,6 +226,7 @@ public class LobbyActivity extends AppCompatActivity
     {
         System.out.println("Game is starting...");
         PlayerListRunnable.Stop();
+        ListenToGameRequestsRunnable.Stop();
         startActivity(new Intent(getApplicationContext(), EnterWordActivity.class));
         finish();
     }

@@ -29,10 +29,6 @@ public class Wordstation
                 if(!line.isEmpty()) words_4_letter.add(line);
             }
         }
-        catch(FileNotFoundException e)
-        {
-            throw new RuntimeException(e);
-        }
         catch(IOException e)
         {
             throw new RuntimeException(e);
@@ -48,10 +44,6 @@ public class Wordstation
             {
                 if(!line.isEmpty()) words_5_letter.add(line);
             }
-        }
-        catch(FileNotFoundException e)
-        {
-            throw new RuntimeException(e);
         }
         catch(IOException e)
         {
@@ -69,10 +61,6 @@ public class Wordstation
                 if(!line.isEmpty()) words_6_letter.add(line);
             }
         }
-        catch(FileNotFoundException e)
-        {
-            throw new RuntimeException(e);
-        }
         catch(IOException e)
         {
             throw new RuntimeException(e);
@@ -88,10 +76,6 @@ public class Wordstation
             {
                 if(!line.isEmpty()) words_7_letter.add(line);
             }
-        }
-        catch(FileNotFoundException e)
-        {
-            throw new RuntimeException(e);
         }
         catch(IOException e)
         {
@@ -111,7 +95,7 @@ public class Wordstation
             
             if(cGuess == cMain) comparison.add('C');
             else if(Contains(mainWord, cGuess)) comparison.add('M');
-            else comparison.add('D');
+            else comparison.add('-');
         }
         
         return comparison;

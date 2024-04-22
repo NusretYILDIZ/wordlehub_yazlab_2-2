@@ -10,7 +10,8 @@ public class GameManager implements Runnable
 {
     private PlayerInfo player1, player2;
     private PlayerGameData playerData1, playerData2;
-    private int wordLength;
+    private        int        wordLength;
+    private        boolean    inGame    = false;
     private static boolean    shouldRun = true;
     private static List<Task> tasks     = new ArrayList<>();
     private static Semaphore  taskMutex = new Semaphore(1);
@@ -20,11 +21,12 @@ public class GameManager implements Runnable
     
     public GameManager(PlayerInfo player1, PlayerInfo player2, int wordLength)
     {
-        this.player1 = player1;
-        this.player2 = player2;
-        this.wordLength = wordLength;
+        this.player1     = player1;
+        this.player2     = player2;
+        this.wordLength  = wordLength;
         this.playerData1 = new PlayerGameData();
         this.playerData2 = new PlayerGameData();
+        tasks.clear();
     }
     
     @Override
@@ -39,7 +41,7 @@ public class GameManager implements Runnable
         {
             /*try
             {
-                Thread.sleep(50);
+                Thread.sleep(100);
             }
             catch(InterruptedException e)
             {
@@ -73,12 +75,13 @@ public class GameManager implements Runnable
         switch(task.getTask())
         {
         case "SEND_WORD":
-            SendWordTask(task);
+            if(inGame) InGameSendWordTask(task);
+            else PreGameSendWordTask(task);
             break;
         }
     }
     
-    public void SendWordTask(Task task)
+    public void PreGameSendWordTask(Task task)
     {
         String initialWord = task.getTokens().getFirst();
         
@@ -88,10 +91,64 @@ public class GameManager implements Runnable
             if(task.getClientID().equals(player1.getId()))
             {
                 ClientTask.AddNewTask(new ClientTask(player1.getId(), "VALID_WORD"));
+                playerData1.setWordForOpponent(initialWord);
+                playerData2.setWordToGuess(initialWord);
             }
             else if(task.getClientID().equals(player2.getId()))
             {
                 ClientTask.AddNewTask(new ClientTask(player2.getId(), "VALID_WORD"));
+                playerData2.setWordForOpponent(initialWord);
+                playerData1.setWordToGuess(initialWord);
+            }
+            else System.err.println("[GameManager] We have an insider!");
+            
+            if(playerData1.getWordToGuess() != null && playerData2.getWordToGuess() != null)
+            {
+                inGame = true;
+                ClientTask.AddNewTask(new ClientTask(player1.getId(), "START_GAME"));
+                ClientTask.AddNewTask(new ClientTask(player2.getId(), "START_GAME"));
+            }
+        }
+        else
+        {
+            System.out.println("[GameManager] We have an invalid word.");
+            if(task.getClientID().equals(player1.getId()))
+            {
+                ClientTask.AddNewTask(new ClientTask(player1.getId(), "INVALID_WORD"));
+            }
+            else if(task.getClientID().equals(player2.getId()))
+            {
+                ClientTask.AddNewTask(new ClientTask(player2.getId(), "INVALID_WORD"));
+            }
+            else System.err.println("[GameManager] We have an insider!");
+        }
+    }
+    
+    public void InGameSendWordTask(Task task)
+    {
+        String initialWord = task.getTokens().getFirst();
+        
+        if(Wordstation.Exists(initialWord, this.wordLength))
+        {
+            System.out.println("[GameManager] We have a valid word.");
+            if(task.getClientID().equals(player1.getId()))
+            {
+                List<Character> comparison = Wordstation.CompareWords(playerData1.getWordToGuess(), initialWord);
+                
+                StringBuilder builder = new StringBuilder("VALID_WORD");
+                for(Character c : comparison) builder.append('"').append(c);
+                
+                ClientTask.AddNewTask(new ClientTask(player1.getId(), builder.toString()));
+            }
+            else if(task.getClientID().equals(player2.getId()))
+            {
+                //ClientTask.AddNewTask(new ClientTask(player2.getId(), "VALID_WORD"));
+                List<Character> comparison = Wordstation.CompareWords(playerData2.getWordToGuess(), initialWord);
+                
+                StringBuilder builder = new StringBuilder("VALID_WORD");
+                for(Character c : comparison) builder.append('"').append(c);
+                
+                ClientTask.AddNewTask(new ClientTask(player2.getId(), builder.toString()));
             }
             else System.err.println("[GameManager] We have an insider!");
         }
@@ -164,15 +221,15 @@ public class GameManager implements Runnable
     
     public static class Task
     {
-        private String clientID;
-        private String task;
+        private String       clientID;
+        private String       task;
         private List<String> tokens;
         
         public Task(String clientID, String task, List<String> tokens)
         {
             this.clientID = clientID;
-            this.task = task;
-            this.tokens = tokens;
+            this.task     = task;
+            this.tokens   = tokens;
         }
         
         public String getClientID()
@@ -208,14 +265,15 @@ public class GameManager implements Runnable
     
     public static class PlayerGameData
     {
-        private String wordForOpponent;
-        private String wordToGuess;
+        private String       wordForOpponent;
+        private String       wordToGuess;
         private List<String> guesses;
         
         public PlayerGameData()
         {
-            this.wordToGuess = null;
-            this.guesses = new ArrayList<>();
+            this.wordToGuess     = null;
+            this.wordForOpponent = null;
+            this.guesses         = new ArrayList<>();
         }
         
         public String getWordForOpponent()

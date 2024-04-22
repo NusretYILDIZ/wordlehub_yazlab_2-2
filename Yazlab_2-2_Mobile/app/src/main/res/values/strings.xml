@@ -74,4 +74,6 @@
     <string name="letter_empty"/>
     <string name="enter_word_for_opponent_text">Rakibinizin tahmin etmesi için bir kelime girin</string>
     <string name="verify_text">Onayla</string>
+    <string name="waiting_opponent_text">Rakip Bekleniyor…</string>
+    <string name="peek_opponent_button_text">Rakibi Dikizle</string>
 </resources>
