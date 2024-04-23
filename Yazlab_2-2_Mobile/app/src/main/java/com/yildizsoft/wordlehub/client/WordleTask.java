@@ -145,6 +145,8 @@ public class WordleTask
         DRAW,
         VALID_WORD,
         INVALID_WORD,
+        GAME_OVER,
+        GAME_CONTINUES,
     }
     
     public enum Type
@@ -163,7 +165,9 @@ public class WordleTask
         ACCEPT_GAME_REQUEST,
         REJECT_GAME_REQUEST,
         LISTEN_TO_ENTER_WORD_TIMER,
-        SEND_WORD,
+        PRE_GAME_SEND_WORD,
+        IN_GAME_SEND_WORD,
+        CHECK_GAME_STATUS,
     }
     
     public enum Status

@@ -356,14 +356,20 @@ public class EnterWordActivity extends AppCompatActivity
             }
         });
         
-        /*LinearLayout enterButton = findViewById(R.id.enterButton);
+        LinearLayout enterButton = findViewById(R.id.enterButton);
         enterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v)
             {
-            
+                if(word.size() == wordLength)
+                {
+                    //verifyButton.setClickable(false);
+                    new Thread(new VerifyEnterWordRunnable(enterWordActivity, GetWord())).start();
+                }
+                
+                else new InfoDialog(enterWordActivity, wordLength + " harfli bir kelime girdiğinizden emin olun.").Show();
             }
-        });*/
+        });
         
         verifyButton = findViewById(R.id.verifyButton);
         verifyButton.setOnClickListener(new View.OnClickListener() {

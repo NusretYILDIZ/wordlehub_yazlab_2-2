@@ -1,5 +1,6 @@
 package com.yildizsoft.wordlehub.game.online.gameplay;
 
+import android.content.Intent;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -11,6 +12,7 @@ import com.yildizsoft.wordlehub.client.PlayerInfo;
 import com.yildizsoft.wordlehub.client.PlayerLobby;
 import com.yildizsoft.wordlehub.client.WordleClient;
 import com.yildizsoft.wordlehub.dialog.InfoDialog;
+import com.yildizsoft.wordlehub.game.online.lobby.LobbyActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,7 @@ public class GuessWordActivity extends AppCompatActivity
     int wordLength = 0;
     int currentGuessIndex = 0;
     GuessWordActivity guessWordActivity;
+    EndGameDialog endGameDialog;
     
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -73,17 +76,8 @@ public class GuessWordActivity extends AppCompatActivity
             if(wordLength >= 6) guesses.add(wordInput.findViewById(R.id.wordInput6));
             if(wordLength >= 7) guesses.add(wordInput.findViewById(R.id.wordInput7));
             
-            for(LinearLayout l : guesses)
-                System.out.print(l.toString() + ", ");
-            System.out.println();
-            
             for(int i = 0; i < wordLength; i++)
-            {
                 getLayoutInflater().inflate(layout, guesses.get(i));
-                //View guessView = getLayoutInflater().inflate(layout, wordInput);
-                //guessView.setId(i);
-                //guesses.add((LinearLayout) guessView);
-            }
             
             for(int i = 0; i < wordLength; i++)
             {
@@ -386,9 +380,38 @@ public class GuessWordActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                new Thread(new VerifyGuessWordRunnable(guessWordActivity, GetWord())).start();
+                if(word.size() == wordLength)
+                    new Thread(new VerifyGuessWordRunnable(guessWordActivity, GetWord())).start();
+                else
+                    new InfoDialog(guessWordActivity, wordLength + " harfli bir kelime girdiğinizden emin olun.").Show();
             }
         });
+        
+        new Thread(new ListenToGameStatusRunnable(guessWordActivity)).start();
+    }
+    
+    public void GameOver(List<String> parameters)
+    {
+        if(parameters.get(0).equals("P1") || parameters.get(0).equals("P2"))
+        {
+            endGameDialog = new EndGameDialog(guessWordActivity, parameters.get(0).equals("P1"), parameters.get(1), parameters.get(2));
+        }
+        else if(parameters.get(0).equals("DRAW"))
+        {
+            endGameDialog = new EndGameDialog(guessWordActivity, parameters.get(1), parameters.get(2), Integer.parseInt(parameters.get(3)), Integer.parseInt(parameters.get(3)));
+        }
+        else
+        {
+            endGameDialog = new EndGameDialog(guessWordActivity, parameters.get(1), parameters.get(2), Integer.parseInt(parameters.get(3)), Integer.parseInt(parameters.get(4)));
+        }
+        System.out.println("Show endgame.");
+        endGameDialog.Show();
+    }
+    
+    public void GoToLobby()
+    {
+        startActivity(new Intent(getApplicationContext(), LobbyActivity.class));
+        finish();
     }
     
     public void InvalidWord()
@@ -404,8 +427,11 @@ public class GuessWordActivity extends AppCompatActivity
             chars.add(c.charAt(0));
         
         ColorizeWord(chars);
-        if(currentGuessIndex < wordLength - 1) currentGuessIndex++;
-        ClearWord();
+        if(currentGuessIndex < wordLength - 1)
+        {
+            currentGuessIndex++;
+            ClearWord();
+        }
         System.out.println("currentGuessIndex = " + currentGuessIndex);
     }
     

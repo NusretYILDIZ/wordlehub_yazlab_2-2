@@ -29,8 +29,6 @@ public class LoginRunnable implements Runnable
         
         while(shouldRun && taskID != -1)
         {
-            System.out.println("LoginRunnable loop.");
-            
             try
             {
                 Thread.sleep(WordleClient.THREAD_SLEEP_DURATION);

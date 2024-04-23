@@ -20,7 +20,7 @@ public class VerifyEnterWordRunnable implements Runnable
     @Override
     public void run()
     {
-        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.SEND_WORD, Collections.singletonList(this.word)));
+        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.PRE_GAME_SEND_WORD, Collections.singletonList(this.word)));
         System.out.println("[VerifyEnterWordRunnable] Task ID: " + taskID);
         
         shouldRun = true;

@@ -66,7 +66,7 @@ public class OnlinePlayers
         try
         {
             playerMutex.acquire();
-            if(player != null && IsPlayerOnline(player.getUsername())) players.get(players.indexOf(player)).setLobby(lobby);
+            if(player != null /*&& IsPlayerOnline(player.getUsername())*/) players.get(players.indexOf(player)).setLobby(lobby);
             playerMutex.release();
         }
         catch(InterruptedException e)

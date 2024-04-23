@@ -123,6 +123,26 @@ public class ClientTask
         return newTask.getId();
     }
     
+    public static void AddNewTaskForMany(List<String> clients, String message)
+    {
+        try
+        {
+            taskMutex.acquire();
+            for(String id : clients)
+            {
+                ClientTask newTask = new ClientTask(id, message);
+                newTask.setId(taskCounter);
+                clientTasks.add(newTask);
+                taskCounter++;
+            }
+            taskMutex.release();
+        }
+        catch(InterruptedException e)
+        {
+            System.err.println("AddNewTaskForMany function has been interrupted.\n" + e);
+        }
+    }
+    
     public static void SetTaskStatus(ClientTask task, Status status)
     {
         try

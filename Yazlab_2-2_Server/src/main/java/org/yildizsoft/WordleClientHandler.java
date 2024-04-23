@@ -46,20 +46,20 @@ public class WordleClientHandler implements Runnable
             shouldContinue = false;
         }
         LogMessage("Yeni bir client bağlandı. Client ID: " + this.id);
-        conTestService = Executors.newSingleThreadScheduledExecutor();
-        conTestFuture  = conTestService.scheduleAtFixedRate(this::TestConnection, 0, 1, TimeUnit.SECONDS);
+        //conTestService = Executors.newSingleThreadScheduledExecutor();
+        //conTestFuture  = conTestService.scheduleAtFixedRate(this::TestConnection, 0, 1, TimeUnit.SECONDS);
         
         String line;
         while(shouldContinue)
         {
-            /*try
+            try
             {
                 Thread.sleep(100);
             }
             catch(InterruptedException e)
             {
                 throw new RuntimeException(e);
-            }*/
+            }
             
             try
             {
@@ -209,10 +209,10 @@ public class WordleClientHandler implements Runnable
     {
         if(clientPrinter != null)
         {
-            System.out.println("Handling client task...");
+            LogMessage("Handling client task (" + task.getMessage() + ")...");
             PrintToClient(task.getMessage());
             ClientTask.SetTaskStatus(task, ClientTask.Status.COMPLETED);
-            System.out.println("Handled client task.");
+            LogMessage("Handled client task.");
         }
     }
     
@@ -261,10 +261,10 @@ public class WordleClientHandler implements Runnable
             RejectGameRequestTask(tokens);
             break;
         
-        case "SEND_WORD":
+        case "PRE_GAME_SEND_WORD", "IN_GAME_SEND_WORD", "CHECK_GAME_STATUS":
             GameManager.AddTask(new GameManager.Task(this.id, task, tokens));
             break;
-            
+        
         case "ACCEPT_REMATCH":
             break;
         
@@ -326,6 +326,7 @@ public class WordleClientHandler implements Runnable
     
     public void EnterLobbyTask(List<String> tokens)
     {
+        LogMessage("Start of EnterLobbyTask");
         PlayerInfo player = OnlinePlayers.GetOnlinePlayerByID(this.id);
         
         if(player != null)
@@ -394,7 +395,7 @@ public class WordleClientHandler implements Runnable
     {
         if(Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getPlayingWith() != null && Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getPlayingWith().equals(tokens.getFirst()))
         {
-            PrintToClient("ALREADY_REQUESTED");
+            PrintToClient("SEND_GAME_REQUEST_ALREADY_REQUESTED");
             return;
         }
         
@@ -407,11 +408,11 @@ public class WordleClientHandler implements Runnable
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setStatus(PlayerStatus.WAITING_REQUEST);
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setPlayingWith(Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getUsername());
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setStatus(PlayerStatus.WAITING_REQUEST);
-            PrintToClient("SUCCESS");
+            PrintToClient("SEND_GAME_REQUEST_SUCCESS");
         }
         else
         {
-            PrintToClient("NO_LONGER_ONLINE");
+            PrintToClient("SEND_GAME_REQUEST_NO_LONGER_ONLINE");
         }
     }
     
@@ -472,8 +473,8 @@ public class WordleClientHandler implements Runnable
     
     public void PrintToClient(String msg)
     {
-        //clientPrinter.println(msg);
-        try
+        clientPrinter.println(msg);
+        /*try
         {
             clientMutex.acquire();
             clientPrinter.println(msg);
@@ -482,7 +483,7 @@ public class WordleClientHandler implements Runnable
         catch(InterruptedException e)
         {
             System.err.println("PrintToClient has been interrupted.\n" + e);
-        }
+        }*/
     }
     
     

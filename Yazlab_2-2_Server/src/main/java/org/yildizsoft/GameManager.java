@@ -1,6 +1,7 @@
 package org.yildizsoft;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -39,14 +40,14 @@ public class GameManager implements Runnable
         
         while(shouldRun)
         {
-            /*try
+            try
             {
                 Thread.sleep(100);
             }
             catch(InterruptedException e)
             {
                 throw new RuntimeException(e);
-            }*/
+            }
             
             List<Task> copyOfTasks = GetTaskList();
             
@@ -74,9 +75,16 @@ public class GameManager implements Runnable
     {
         switch(task.getTask())
         {
-        case "SEND_WORD":
-            if(inGame) InGameSendWordTask(task);
-            else PreGameSendWordTask(task);
+        case "PRE_GAME_SEND_WORD":
+            PreGameSendWordTask(task);
+            break;
+            
+        case "IN_GAME_SEND_WORD":
+            InGameSendWordTask(task);
+            break;
+            
+        case "CHECK_GAME_STATUS":
+            CheckGameStatus();
             break;
         
         case "DECLINE_REMATCH":
@@ -109,8 +117,17 @@ public class GameManager implements Runnable
             if(playerData1.getWordToGuess() != null && playerData2.getWordToGuess() != null)
             {
                 inGame = true;
-                ClientTask.AddNewTask(new ClientTask(player1.getId(), "START_GAME"));
-                ClientTask.AddNewTask(new ClientTask(player2.getId(), "START_GAME"));
+                //ClientTask.AddNewTask(new ClientTask(player1.getId(), "START_GAME"));
+                //ClientTask.AddNewTask(new ClientTask(player2.getId(), "START_GAME"));
+                try
+                {
+                    Thread.sleep(100);
+                }
+                catch(InterruptedException e)
+                {
+                    throw new RuntimeException(e);
+                }
+                ClientTask.AddNewTaskForMany(Arrays.asList(player1.getId(), player2.getId()), "START_GAME");
             }
         }
         else
@@ -138,27 +155,31 @@ public class GameManager implements Runnable
             if(task.getClientID().equals(player1.getId()))
             {
                 List<Character> comparison = Wordstation.CompareWords(playerData1.getWordToGuess(), initialWord);
-                playerData1.getComparisons().add(comparison);
+                playerData1.AddComparison(comparison);
+                //playerData1.getComparisons().add(comparison);
                 
                 StringBuilder builder = new StringBuilder("VALID_WORD");
                 for(Character c : comparison) builder.append('"').append(c);
                 
                 ClientTask.AddNewTask(new ClientTask(player1.getId(), builder.toString()));
                 
-                if(DidWin(comparison)) HeWon(true);
+                //CheckGameStatus();
+                //if(DidWin(comparison)) HeWon(true);
             }
             else if(task.getClientID().equals(player2.getId()))
             {
                 //ClientTask.AddNewTask(new ClientTask(player2.getId(), "VALID_WORD"));
                 List<Character> comparison = Wordstation.CompareWords(playerData2.getWordToGuess(), initialWord);
-                playerData2.getComparisons().add(comparison);
+                playerData2.AddComparison(comparison);
+                //playerData2.getComparisons().add(comparison);
                 
                 StringBuilder builder = new StringBuilder("VALID_WORD");
                 for(Character c : comparison) builder.append('"').append(c);
                 
                 ClientTask.AddNewTask(new ClientTask(player2.getId(), builder.toString()));
                 
-                if(DidWin(comparison)) HeWon(false);
+                //CheckGameStatus();
+                //if(DidWin(comparison)) HeWon(false);
             }
             else System.err.println("[GameManager] We have an insider!");
         }
@@ -182,27 +203,81 @@ public class GameManager implements Runnable
         Stop();
     }
     
-    public boolean DidWin(List<Character> coms)
+    public void CheckGameStatus()
+    {
+        if(DidGuessCorrectly(playerData1)) HeWon(true);
+        else if(DidGuessCorrectly(playerData2)) HeWon(false);
+        
+        else if(!CanGuess(playerData1) && CanGuess(playerData2))
+        {
+        
+        }
+        else if(CanGuess(playerData1) && !CanGuess(playerData2))
+        {
+        
+        }
+        else if(!CanGuess(playerData1) && !CanGuess(playerData2))
+        {
+            playerData1.setPoints(CalculatePoints(playerData1));
+            playerData2.setPoints(CalculatePoints(playerData2));
+            
+            if(playerData1.getPoints() == playerData2.getPoints()) Draw();
+            else HeWonByPoints();
+        }
+        else
+        {
+            //ClientTask.AddNewTask(new ClientTask(player1.getId(), "GAME_CONTINUES"));
+            //ClientTask.AddNewTask(new ClientTask(player2.getId(), "GAME_CONTINUES"));
+            ClientTask.AddNewTaskForMany(Arrays.asList(player1.getId(), player2.getId()), "GAME_CONTINUES");
+        }
+    }
+    
+    public boolean DidGuessCorrectly(PlayerGameData playerGameData)
     {
         boolean won = true;
         
-        for(Character c : coms)
-        {
-            if(c != 'C')
-            {
-                won = false;
-                break;
-            }
-        }
+        //System.out.println("Comparisons: " + Arrays.toString(playerGameData.getComparisons().toArray()));
         
-        return won;
+        if(playerGameData.getComparisons().isEmpty()) return false;
+        else
+        {
+            List<Character> coms = playerGameData.getComparisons().getLast();
+            
+            for(Character c : coms)
+            {
+                if(c != 'C')
+                {
+                    won = false;
+                    break;
+                }
+            }
+            
+            return won;
+        }
     }
     
     public void HeWon(boolean firstPlayer)
     {
         inGame = false;
-        ClientTask.AddNewTask(new ClientTask(player1.getId(), "GAME_OVER\"" + (firstPlayer ? "1" : "2")));
-        ClientTask.AddNewTask(new ClientTask(player2.getId(), "GAME_OVER\"" + (firstPlayer ? "1" : "2")));
+        //ClientTask.AddNewTask(new ClientTask(player1.getId(), "GAME_OVER\"" + (firstPlayer ? "P1" : "P2") + '"' + player1.getUsername() + '"' + player2.getUsername()));
+        //ClientTask.AddNewTask(new ClientTask(player2.getId(), "GAME_OVER\"" + (firstPlayer ? "P1" : "P2") + '"' + player1.getUsername() + '"' + player2.getUsername()));
+        ClientTask.AddNewTaskForMany(Arrays.asList(player1.getId(), player2.getId()), "GAME_OVER\"" + (firstPlayer ? "P1" : "P2") + '"' + player1.getUsername() + '"' + player2.getUsername());
+    }
+    
+    public void HeWonByPoints()
+    {
+        inGame = false;
+        //ClientTask.AddNewTask(new ClientTask(player1.getId(), "GAME_OVER\"" + player1.getUsername() + '"' + player2.getUsername() + '"' + playerData1.getPoints() + '"' + playerData2.getPoints()));
+        //ClientTask.AddNewTask(new ClientTask(player2.getId(), "GAME_OVER\"" + player1.getUsername() + '"' + player2.getUsername() + '"' + playerData1.getPoints() + '"' + playerData2.getPoints()));
+        ClientTask.AddNewTaskForMany(Arrays.asList(player1.getId(), player2.getId()), "GAME_OVER\"" + player1.getUsername() + '"' + player2.getUsername() + '"' + playerData1.getPoints() + '"' + playerData2.getPoints());
+    }
+    
+    public void Draw()
+    {
+        inGame = false;
+        //ClientTask.AddNewTask(new ClientTask(player1.getId(), "GAME_OVER\"DRAW\"" + player1.getUsername() + '"' + player2.getUsername() + '"' + playerData1.getPoints()));
+        //ClientTask.AddNewTask(new ClientTask(player2.getId(), "GAME_OVER\"DRAW\"" + player1.getUsername() + '"' + player2.getUsername() + '"' + playerData2.getPoints()));
+        ClientTask.AddNewTaskForMany(Arrays.asList(player1.getId(), player2.getId()), "GAME_OVER\"DRAW\"" + player1.getUsername() + '"' + player2.getUsername() + '"' + playerData2.getPoints());
     }
     
     public boolean CanGuess(PlayerGameData playerGameData)
@@ -262,7 +337,7 @@ public class GameManager implements Runnable
         try
         {
             taskMutex.acquire();
-            tasks.remove(i);
+            if(tasks.size() > i) tasks.remove(i);
             taskMutex.release();
         }
         catch(InterruptedException e)
@@ -385,6 +460,11 @@ public class GameManager implements Runnable
         public void setComparisons(List<List<Character>> comparisons)
         {
             this.comparisons = comparisons;
+        }
+        
+        public void AddComparison(List<Character> com)
+        {
+            this.comparisons.add(com);
         }
     }
 }

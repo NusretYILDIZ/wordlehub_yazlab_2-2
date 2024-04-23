@@ -20,8 +20,8 @@ public class VerifyGuessWordRunnable implements Runnable
     @Override
     public void run()
     {
-        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.SEND_WORD, Collections.singletonList(this.word)));
-        System.out.println("[VerifyEnterWordRunnable] Task ID: " + taskID);
+        long taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.IN_GAME_SEND_WORD, Collections.singletonList(this.word)));
+        //System.out.println("[VerifyEnterWordRunnable] Task ID: " + taskID);
         
         shouldRun = true;
         
@@ -43,14 +43,28 @@ public class VerifyGuessWordRunnable implements Runnable
                 if(taskResult.getType() == WordleTask.ResultType.INVALID_WORD)
                 {
                     guessWordActivity.runOnUiThread(guessWordActivity::InvalidWord);
+                    Stop();
                 }
                 else if(taskResult.getType() == WordleTask.ResultType.VALID_WORD)
                 {
                     guessWordActivity.runOnUiThread(() -> guessWordActivity.ValidWord(taskResult.getParameters()));
+                    //taskID = WordleClient.AddNewTask(new WordleTask(WordleTask.Type.CHECK_GAME_STATUS, null));
+                    Stop();
                 }
-                else System.err.println("Unknown task result \"" + taskResult + "\" in VerifyEnterWordRunnable, exiting.");
-                
-                Stop();
+                /*else if(taskResult.getType() == WordleTask.ResultType.GAME_CONTINUES)
+                {
+                    Stop();
+                }
+                else if(taskResult.getType() == WordleTask.ResultType.GAME_OVER)
+                {
+                    guessWordActivity.runOnUiThread(() -> guessWordActivity.GameOver(taskResult.getParameters()));
+                    Stop();
+                }*/
+                else
+                {
+                    System.err.println("Unknown task result \"" + taskResult + "\" in VerifyEnterWordRunnable, exiting.");
+                    Stop();
+                }
             }
         }
     }

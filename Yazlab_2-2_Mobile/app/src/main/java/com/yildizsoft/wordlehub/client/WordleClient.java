@@ -15,13 +15,6 @@ public class WordleClient implements Runnable
     
     public static ArrayList<WordleTask>            wordleTasks           = new ArrayList<>();
     private static long taskCounter = 0;
-    
-    //public static ArrayList<WordleTask.ResultType> wordleTaskResultTypes = new ArrayList<>();
-    //public static String                           wordleTaskResultParam = "";
-    //public static String                           taskStatus;
-    
-    //private static String serverIP;
-    //private static int serverPort;
     private static Socket         clientSock;
     private static PrintWriter    clientPrinter;
     private static BufferedReader clientReader;
@@ -30,31 +23,28 @@ public class WordleClient implements Runnable
     private static       PlayerInfo player    = null;
     private static final String    uid       = UUID.randomUUID().toString();
     private static final Semaphore taskMutex = new Semaphore(1);
+    private static List<String> serverResponses = new ArrayList<>();
     
     public WordleClient()
     {
-        //serverIP = ip;
-        //serverPort = port;
         shouldRun = true;
         FlushTaskList();
-        //wordleTasks.clear();
-        //wordleTaskResultTypes.clear();
-        //wordleTaskResult = null;
-        //taskStatus = null;
-        //clientSock = new Socket();
     }
-    
-    /*public static void SetServerIpPort(String ip, int port)
-    {
-        serverIP = ip;
-        serverPort = port;
-    }*/
     
     @Override
     public void run()
     {
         while(shouldRun)
         {
+            try
+            {
+                Thread.sleep(THREAD_SLEEP_DURATION);
+            }
+            catch(InterruptedException e)
+            {
+                throw new RuntimeException(e);
+            }
+            
             List<WordleTask> tasks = null;
             
             try
@@ -77,6 +67,12 @@ public class WordleClient implements Runnable
                 return;
             }
             
+            serverResponses.clear();
+            serverResponses = GetServerResponses();
+            /*String line;
+            while((line = WaitForResponse()) != null)
+                serverResponses.add(line);*/
+            
             for(int i = tasks.size() - 1; i >= 0; i--)
             {
                 WordleTask task = tasks.get(i);
@@ -84,22 +80,13 @@ public class WordleClient implements Runnable
                 if(task.getStatus() != WordleTask.Status.COMPLETED)
                 {
                     //tasks.get(i).setStatus(WordleTask.Status.IN_PROGRESS);
-                    SetTaskStatus(task, WordleTask.Status.IN_PROGRESS);
+                    //SetTaskStatus(task, WordleTask.Status.IN_PROGRESS);
                     HandleTask(task);
                     //SetTaskStatus(task, WordleTask.Status.COMPLETED);
                     //tasks.get(i).setStatus(WordleTask.Status.DONE);
                     //wordleTasks.remove(i);
                 }
                 //break;
-            }
-            
-            try
-            {
-                Thread.sleep(THREAD_SLEEP_DURATION);
-            }
-            catch(InterruptedException e)
-            {
-                throw new RuntimeException(e);
             }
         }
     }
@@ -153,19 +140,162 @@ public class WordleClient implements Runnable
         return stringBuilder.toString();
     }
     
+    public static List<String> GetServerResponses()
+    {
+        List<String> responses = new ArrayList<>();
+        
+        if(clientReader != null)
+        {
+            try
+            {
+                while(clientReader.ready())
+                {
+                    String line = clientReader.readLine();
+                    if(line != null) responses.add(line);
+                }
+            }
+            catch(IOException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        return responses;
+    }
+    
     public static String WaitForResponse()
     {
-        try
+        //if(clientReader != null)
+        //{
+            try
+            {
+                String line = clientReader.readLine();
+                line = line.replaceAll("test", "");
+                return line;
+                //return clientReader.readLine();
+            }
+            catch(IOException e)
+            {
+                return null;
+            }
+        //}
+        //return null;
+    }
+    
+    public static String GetResponseOf(WordleTask.Type taskType)
+    {
+        //List<String> responses = new ArrayList<>();
+        
+        for(String response : serverResponses)
         {
-            String line = clientReader.readLine();
-            line = line.replaceAll("test", "");
-            return line;
-            //return clientReader.readLine();
+            switch(taskType)
+            {
+            case SIGNUP:
+                if(response.contains("SIGNUP_SUCCESS") ||
+                   response.contains("SIGNUP_FAIL_USER_ALREADY_EXISTS") ||
+                   response.contains("SIGNUP_FAIL_OTHER"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case LOGIN:
+                if(response.contains("LOGIN_SUCCESS") ||
+                   response.contains("LOGIN_FAIL_USERNAME_NOT_FOUND") ||
+                   response.contains("LOGIN_FAIL_USER_ALREADY_LOGGED_IN") ||
+                   response.contains("LOGIN_FAIL_WRONG_PASSWORD") ||
+                   response.contains("LOGIN_FAIL_OTHER"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case LOGOUT:
+                if(response.contains("LOGOUT_SUCCESS") ||
+                   response.contains("LOGOUT_FAIL"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case ENTER_LOBBY:
+                if(response.contains("ENTER_LOBBY_SUCCESS") ||
+                   response.contains("ENTER_LOBBY_FAIL"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case EXIT_LOBBY:
+                if(response.contains("EXIT_LOBBY_SUCCESS") ||
+                   response.contains("EXIT_LOBBY_FAIL"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case PLAYER_LIST:
+                if(response.contains("PLAYERS_IN_LOBBY") ||
+                   response.contains("NO_PLAYERS") ||
+                   response.contains("LOGIN_REQUIRED") ||
+                   response.contains("LOGIN_OTHER"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case SEND_GAME_REQUEST:
+                if(response.contains("SEND_GAME_REQUEST_SUCCESS") ||
+                   response.contains("SEND_GAME_REQUEST_ALREADY_REQUESTED") ||
+                   response.contains("SEND_GAME_REQUEST_NO_LONGER_ONLINE") ||
+                   response.contains("SEND_GAME_REQUEST_FAIL_OTHER"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case WAIT_GAME_REQUEST_RESPONSE:
+                if(response.contains("GAME_REQUEST_ACCEPTED") ||
+                   response.contains("GAME_REQUEST_REJECTED"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case LISTEN_TO_GAME_REQUESTS:
+                if(response.contains("NEW_REQUEST"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case ACCEPT_GAME_REQUEST:
+                if(response.contains("GAME_REQUEST_ACCEPTED"))
+                    return response;
+                //responses.add(response);
+                break;
+                
+            case REJECT_GAME_REQUEST:
+                if(response.contains("GAME_REQUEST_REJECTED"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case PRE_GAME_SEND_WORD:
+            case IN_GAME_SEND_WORD:
+                if(response.contains("INVALID_WORD") ||
+                   response.contains("VALID_WORD"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case LISTEN_TO_ENTER_WORD_TIMER:
+                if(response.contains("START_GAME"))
+                    return response;
+                //responses.add(response);
+                break;
+            
+            case CHECK_GAME_STATUS:
+                if(response.contains("GAME_CONTINUES") ||
+                   response.contains("GAME_OVER"))
+                    return response;
+                //responses.add(response);
+                break;
+            }
         }
-        catch(IOException e)
-        {
-            return null;
-        }
+        
+        return null;
     }
     
     public static void DisconnectClient()
@@ -258,12 +388,17 @@ public class WordleClient implements Runnable
             ProcessGameRequestTask(wordleTask);
             break;
             
-        case SEND_WORD:
+        case PRE_GAME_SEND_WORD:
+        case IN_GAME_SEND_WORD:
             SendWordTask(wordleTask);
             break;
             
         case LISTEN_TO_ENTER_WORD_TIMER:
             ListenToEnterWordTimer(wordleTask);
+            break;
+            
+        case CHECK_GAME_STATUS:
+            CheckGameStatusTask(wordleTask);
             break;
         }
     }
@@ -283,7 +418,9 @@ public class WordleClient implements Runnable
     
     protected static void DisconnectTask(WordleTask wordleTask)
     {
-        SendMessageToServer(CreateMessageFromTask(wordleTask));
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        
         StopClient();
         
         SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
@@ -291,177 +428,231 @@ public class WordleClient implements Runnable
     
     protected static void SignUpTask(WordleTask wordleTask)
     {
-        SendMessageToServer(CreateMessageFromTask(wordleTask));
-        String response = WaitForResponse();
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
         System.out.println("Sign up response: " + response);
         
-        if(response != null && response.equals("SIGNUP_SUCCESS"))
-            SetTaskResult(wordleTask, WordleTask.ResultType.SIGNUP_SUCCESS, null);
-            //AddTaskResult(WordleTask.ResultType.SIGNUP_SUCCESS);
-        
-        else
+        if(response != null)
         {
-            if(response == null)
-                SetTaskResult(wordleTask, WordleTask.ResultType.SIGNUP_FAIL_OTHER, null);
-                //AddTaskResult(WordleTask.ResultType.SIGNUP_FAIL_OTHER);
+            if(response.equals("SIGNUP_SUCCESS"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.SIGNUP_SUCCESS, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
             
             else if(response.equals("SIGNUP_FAIL_USER_ALREADY_EXISTS"))
+            {
                 SetTaskResult(wordleTask, WordleTask.ResultType.SIGNUP_FAIL_USER_ALREADY_EXISTS, null);
-                //AddTaskResult(WordleTask.ResultType.SIGNUP_FAIL_USER_ALREADY_EXISTS);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
             
-            else
+            else if(response.startsWith("SIGNUP_FAIL_OTHER"))
+            {
                 SetTaskResult(wordleTask, WordleTask.ResultType.SIGNUP_FAIL_OTHER, null);
-            //AddTaskResult(WordleTask.ResultType.SIGNUP_FAIL_OTHER);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
         }
         
-        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void LoginTask(WordleTask wordleTask)
     {
-        SendMessageToServer(CreateMessageFromTask(wordleTask));
-        String response = WaitForResponse();
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
         System.out.println("Login response: " + response);
         //taskStatus = response;
         
-        if(response != null && response.startsWith("LOGIN_SUCCESS"))
+        
+        if(response != null)
         {
-            String[] splitResponse = response.split("\"");
-            String   id            = splitResponse[1];
-            String   username      = splitResponse[2];
-            
-            player = new PlayerInfo(id, username);
-            SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_SUCCESS, null);
-            //AddTaskResult(WordleTask.ResultType.LOGIN_SUCCESS);
-        }
-        else
-        {
-            if(response == null) SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_FAIL_OTHER, null); //AddTaskResult(WordleTask.ResultType.LOGIN_FAIL_OTHER);
-            
+            if(response.startsWith("LOGIN_SUCCESS"))
+            {
+                String[] splitResponse = response.split("\"");
+                String   id            = splitResponse[1];
+                String   username      = splitResponse[2];
+                
+                player = new PlayerInfo(id, username);
+                SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_SUCCESS, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
             else if(response.equals("LOGIN_FAIL_USERNAME_NOT_FOUND"))
+            {
                 SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_FAIL_USERNAME_NOT_FOUND, null);
-                //AddTaskResult(WordleTask.ResultType.LOGIN_FAIL_USERNAME_NOT_FOUND);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
             
             else if(response.equals("LOGIN_FAIL_WRONG_PASSWORD"))
+            {
                 SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_FAIL_WRONG_PASSWORD, null);
-                //AddTaskResult(WordleTask.ResultType.LOGIN_FAIL_WRONG_PASSWORD);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
             
             else if(response.equals("LOGIN_FAIL_USER_ALREADY_LOGGED_IN"))
+            {
                 SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_FAIL_USER_ALREADY_LOGGED_IN, null);
-            
-            else SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_FAIL_OTHER, null); //AddTaskResult(WordleTask.ResultType.LOGIN_FAIL_OTHER);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            else if(response.startsWith("LOGIN_FAIL_OTHER"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.LOGIN_FAIL_OTHER, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
         }
         
-        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void LogoutTask(WordleTask wordleTask)
     {
-        SendMessageToServer(CreateMessageFromTask(wordleTask));
-        String response = WaitForResponse();
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
         System.out.println("Logout response: " + response);
         
-        if(response != null && response.startsWith("LOGOUT_SUCCESS"))
-            SetTaskResult(wordleTask, WordleTask.ResultType.LOGOUT_SUCCESS, null);
+        if(response != null)
+        {
+            if(response.startsWith("LOGOUT_SUCCESS"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.LOGOUT_SUCCESS, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            else if(response.startsWith("LOGOUT_FAIL"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.LOGOUT_FAIL, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+        }
         
-        else SetTaskResult(wordleTask, WordleTask.ResultType.LOGOUT_FAIL, null);
-        
-        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void EnterLobbyTask(WordleTask wordleTask)
     {
-        SendMessageToServer(CreateMessageFromTask(wordleTask));
-        String response = WaitForResponse();
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
         System.out.println("Enter lobby response: " + response);
         
-        if(response != null && response.startsWith("ENTER_LOBBY_SUCCESS"))
-            SetTaskResult(wordleTask, WordleTask.ResultType.ENTER_LOBBY_SUCCESS, null);
-            //AddTaskResult(WordleTask.ResultType.ENTER_LOBBY_SUCCESS);
+        if(response != null)
+        {
+            if(response.startsWith("ENTER_LOBBY_SUCCESS"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.ENTER_LOBBY_SUCCESS, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            else if(response.startsWith("ENTER_LOBBY_FAIL"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.ENTER_LOBBY_FAIL, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+        }
         
-        else SetTaskResult(wordleTask, WordleTask.ResultType.ENTER_LOBBY_FAIL, null); //AddTaskResult(WordleTask.ResultType.ENTER_LOBBY_FAIL);
-        
-        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void ExitLobbyTask(WordleTask wordleTask)
     {
-        SendMessageToServer(CreateMessageFromTask(wordleTask));
-        String response = WaitForResponse();
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
         System.out.println("Exit lobby response: " + response);
         
-        if(response != null && response.startsWith("EXIT_LOBBY_SUCCESS"))
-            SetTaskResult(wordleTask, WordleTask.ResultType.EXIT_LOBBY_SUCCESS, null);
-            //AddTaskResult(WordleTask.ResultType.EXIT_LOBBY_SUCCESS);
+        if(response != null)
+        {
+            if(response.startsWith("EXIT_LOBBY_SUCCESS"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.EXIT_LOBBY_SUCCESS, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            else if(response.startsWith("EXIT_LOBBY_FAIL"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.EXIT_LOBBY_FAIL, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+        }
         
-        else SetTaskResult(wordleTask, WordleTask.ResultType.EXIT_LOBBY_FAIL, null); //AddTaskResult(WordleTask.ResultType.EXIT_LOBBY_FAIL);
-        
-        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void PlayerListTask(WordleTask wordleTask)
     {
-        SendMessageToServer(CreateMessageFromTask(wordleTask));
-        String response = WaitForResponse();
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
         System.out.println("Player list response: " + response);
         
-        if(response == null)
-            SetTaskResult(wordleTask, WordleTask.ResultType.PLAYER_LIST_FAIL_OTHER, null);
-            //AddTaskResult(WordleTask.ResultType.PLAYER_LIST_FAIL_OTHER);
-        
-        else if(response.equals("LOGIN_REQUIRED"))
-            SetTaskResult(wordleTask, WordleTask.ResultType.PLAYER_LIST_FAIL_LOGIN_REQUIRED, null);
-            //AddTaskResult(WordleTask.ResultType.PLAYER_LIST_FAIL_LOGIN_REQUIRED);
-        
-        else if(response.equals("NO_PLAYERS"))
-            SetTaskResult(wordleTask, WordleTask.ResultType.PLAYER_LIST_FAIL_NO_PLAYERS, null);
-            //AddTaskResult(WordleTask.ResultType.PLAYER_LIST_FAIL_NO_PLAYERS);
-        
-        else if(response.startsWith("PLAYERS_IN_LOBBY"))
+        if(response != null)
         {
-            System.out.println("Oyuncu listesi alındı.");
-            List<String> tokens = new ArrayList<>(Arrays.asList(response.split("\"")));
-            tokens.remove(0);
+            if(response.equals("LOGIN_REQUIRED"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.PLAYER_LIST_FAIL_LOGIN_REQUIRED, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
             
-            SetTaskResult(wordleTask, WordleTask.ResultType.PLAYER_LIST_SUCCESS, tokens);
+            else if(response.equals("NO_PLAYERS"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.PLAYER_LIST_FAIL_NO_PLAYERS, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            
+            else if(response.equals("LOGIN_OTHER"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.PLAYER_LIST_FAIL_OTHER, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            
+            else if(response.startsWith("PLAYERS_IN_LOBBY"))
+            {
+                System.out.println("Oyuncu listesi alındı.");
+                List<String> tokens = new ArrayList<>(Arrays.asList(response.split("\"")));
+                tokens.remove(0);
+                
+                SetTaskResult(wordleTask, WordleTask.ResultType.PLAYER_LIST_SUCCESS, tokens);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
         }
-        
-        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     protected static void SendGameRequestTask(WordleTask wordleTask)
     {
-        SendMessageToServer(CreateMessageFromTask(wordleTask));
-        String response = WaitForResponse();
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
         System.out.println("Send game request response: " + response);
         
-        if(response == null)
-            SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_OTHER, null);
-        
-        else if(response.startsWith("ALREADY_REQUESTED"))
-            SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_ALREADY_REQUESTED, null);
-        
-        else if(response.startsWith("NO_LONGER_ONLINE"))
-            SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_NO_LONGER_ONLINE, null);
-        
-        else if(response.startsWith("FAIL_OTHER"))
-            SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_OTHER, null);
-        
-        else
+        if(response != null)
         {
-            SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_SUCCESS, null);
+            if(response.startsWith("SEND_GAME_REQUEST_ALREADY_REQUESTED"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_ALREADY_REQUESTED, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            
+            else if(response.startsWith("SEND_GAME_REQUEST_NO_LONGER_ONLINE"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_NO_LONGER_ONLINE, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            
+            else if(response.startsWith("SEND_GAME_REQUEST_FAIL_OTHER"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_FAIL_OTHER, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            
+            else if(response.startsWith("SEND_GAME_REQUEST_SUCCESS"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.SEND_GAME_REQUEST_SUCCESS, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
         }
-        
-        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     public static void WaitGameRequestResponseTask(WordleTask wordleTask)
     {
-        try
+        /*try
         {
             if(clientReader.ready())
-            {
-                String response = WaitForResponse();
+            {*/
+                String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
                 System.out.println("Wait game request response response: " + response);
                 
                 if(response != null && response.startsWith("GAME_REQUEST_ACCEPTED"))
@@ -478,21 +669,21 @@ public class WordleClient implements Runnable
                 
                 //else System.err.println("Unhandled edge case in WaitGameRequestResponseTask, response: " + response);
                 
-            }
+         /*   }
         }
         catch(IOException e)
         {
             System.err.println("An error has occurred while waiting game request response.\n" + e);
-        }
+        }*/
     }
     
     public static void ListenToGameRequestsTask(WordleTask wordleTask)
     {
-        try
+        /*try
         {
             if(clientReader.ready())
-            {
-                String response = clientReader.readLine();
+            {*/
+                String response = GetResponseOf(wordleTask.getTask()); //clientReader.readLine();
                 System.out.println("Listen to game requests response: " + response);
                 
                 String[] tokens = null;
@@ -504,18 +695,19 @@ public class WordleClient implements Runnable
                     SetTaskResult(wordleTask, WordleTask.ResultType.NEW_REQUEST_FOUND, Collections.singletonList(tokens[1]));
                     SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
                 }
-            }
+          /*  }
         }
         catch(IOException e)
         {
             System.err.println("An error has occurred while listening to game requests.\n" + e);
-        }
+        }*/
     }
     
     public static void ProcessGameRequestTask(WordleTask wordleTask)
     {
-        SendMessageToServer(CreateMessageFromTask(wordleTask));
-        String response = WaitForResponse();
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
         System.out.println("Process game request response: " + response);
         
         String[] tokens = null;
@@ -525,28 +717,39 @@ public class WordleClient implements Runnable
         if(tokens != null)
         {
             if(tokens[0].startsWith("GAME_REQUEST_ACCEPTED"))
+            {
                 SetTaskResult(wordleTask, WordleTask.ResultType.GAME_REQUEST_ACCEPTED, Collections.singletonList(tokens[1]));
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
             
-            else //if(tokens[0].startsWith("GAME_REQUEST_REJECTED"))
+            else if(tokens[0].startsWith("GAME_REQUEST_REJECTED"))
+            {
                 SetTaskResult(wordleTask, WordleTask.ResultType.GAME_REQUEST_REJECTED, Collections.singletonList(tokens[1]));
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
         }
-        
-        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     public static void SendWordTask(WordleTask wordleTask)
     {
-        SendMessageToServer(CreateMessageFromTask(wordleTask));
-        String response = WaitForResponse();
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
         System.out.println("Send word task response: " + response);
         
         if(response != null)
         {
             if(response.startsWith("INVALID_WORD"))
+            {
                 SetTaskResult(wordleTask, WordleTask.ResultType.INVALID_WORD, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
             
             else if(response.equals("VALID_WORD"))
+            {
                 SetTaskResult(wordleTask, WordleTask.ResultType.VALID_WORD, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
             
             else if(response.startsWith("VALID_WORD"))
             {
@@ -554,34 +757,61 @@ public class WordleClient implements Runnable
                 tokens.remove(0);
                 
                 SetTaskResult(wordleTask, WordleTask.ResultType.VALID_WORD, tokens);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
             }
         }
-        
-        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
     }
     
     public static void ListenToEnterWordTimer(WordleTask wordleTask)
     {
-        try
+        /*try
         {
             if(clientReader.ready())
-            {
-                String response = clientReader.readLine();
+            {*/
+                String response = GetResponseOf(wordleTask.getTask()); //clientReader.readLine();
                 System.out.println("Listen to enter word timer response: " + response);
                 
                 if(response != null)
                 {
                     if(response.startsWith("START_GAME"))
+                    {
                         SetTaskResult(wordleTask, WordleTask.ResultType.GAME_STARTS, null);
+                        SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+                    }
                 }
-                
-                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
-            }
+          /*  }
         }
         catch(IOException e)
         {
             System.err.println("An error has occurred while listening to game server.\n" + e);
+        }*/
+    }
+    
+    public static void CheckGameStatusTask(WordleTask wordleTask)
+    {
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
+        System.out.println("Check game status response: " + response);
+        
+        if(response != null)
+        {
+            if(response.startsWith("GAME_OVER"))
+            {
+                List<String> tokens = new ArrayList<>(Arrays.asList(response.split("\"")));
+                tokens.remove(0);
+                
+                SetTaskResult(wordleTask, WordleTask.ResultType.GAME_OVER, tokens);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+                
+            }
+            else if(response.equals("GAME_CONTINUES"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.GAME_CONTINUES, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
         }
+        
     }
     
     
