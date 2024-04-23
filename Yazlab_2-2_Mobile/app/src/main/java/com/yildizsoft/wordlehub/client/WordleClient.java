@@ -292,6 +292,37 @@ public class WordleClient implements Runnable
                     return response;
                 //responses.add(response);
                 break;
+                
+            case OFFER_REMATCH:
+                if(response.contains("REMATCH_OFFER_SENT"))
+                    return response;
+                break;
+                
+            case WAIT_FOR_REMATCH_RESPONSE:
+                if(response.contains("REMATCH_ACCEPTED") ||
+                   response.contains("REMATCH_DECLINED"))
+                    return response;
+                break;
+                
+            case LISTEN_TO_REMATCH_OFFERS:
+                if(response.contains("NEW_REMATCH_OFFER"))
+                    return response;
+                break;
+                
+            case ACCEPT_REMATCH:
+                if(response.contains("REMATCH_ACCEPTED"))
+                    return response;
+                break;
+                
+            case DECLINE_REMATCH:
+                if(response.contains("REMATCH_DECLINED"))
+                    return response;
+                break;
+                
+            case RETURN_TO_LOBBY_AFTER_GAME:
+                if(response.contains("RETURNED_TO_LOBBY"))
+                    return response;
+                break;
             }
         }
         
@@ -399,6 +430,30 @@ public class WordleClient implements Runnable
             
         case CHECK_GAME_STATUS:
             CheckGameStatusTask(wordleTask);
+            break;
+            
+        case OFFER_REMATCH:
+            OfferRematchTask(wordleTask);
+            break;
+            
+        case WAIT_FOR_REMATCH_RESPONSE:
+            WaitForRematchResponseTask(wordleTask);
+            break;
+            
+        case LISTEN_TO_REMATCH_OFFERS:
+            ListenToRematchOffersTask(wordleTask);
+            break;
+            
+        case ACCEPT_REMATCH:
+            AcceptRematchTask(wordleTask);
+            break;
+            
+        case DECLINE_REMATCH:
+            DeclineRematchTask(wordleTask);
+            break;
+            
+        case RETURN_TO_LOBBY_AFTER_GAME:
+            ReturnToLobbyAfterGameTask(wordleTask);
             break;
         }
     }
@@ -812,6 +867,125 @@ public class WordleClient implements Runnable
             }
         }
         
+    }
+    
+    public static void OfferRematchTask(WordleTask wordleTask)
+    {
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
+        System.out.println("Offer rematch response: " + response);
+        
+        if(response != null)
+        {
+            if(response.contains("REMATCH_OFFER_SENT"))
+            {
+                List<String> tokens = new ArrayList<>(Arrays.asList(response.split("\"")));
+                tokens.remove(0);
+                
+                SetTaskResult(wordleTask, WordleTask.ResultType.REMATCH_OFFER_SENT, tokens);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            /*else if(response.contains("REMATCH_DECLINED"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.REMATCH_DECLINED, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }*/
+        }
+    }
+    
+    public static void WaitForRematchResponseTask(WordleTask wordleTask)
+    {
+        String response = GetResponseOf(wordleTask.getTask());
+        System.out.println("Wait for rematch response response: " + response);
+        
+        if(response != null)
+        {
+            if(response.contains("REMATCH_ACCEPTED"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.REMATCH_ACCEPTED, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            else if(response.contains("REMATCH_DECLINED"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.REMATCH_DECLINED, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+        }
+    }
+    
+    public static void ListenToRematchOffersTask(WordleTask wordleTask)
+    {
+        String response = GetResponseOf(wordleTask.getTask());
+        System.out.println("Listen to rematch offers response: " + response);
+        
+        if(response != null)
+        {
+            if(response.contains("NEW_REMATCH_OFFER"))
+            {
+                List<String> tokens = new ArrayList<>(Arrays.asList(response.split("\"")));
+                tokens.remove(0);
+                
+                SetTaskResult(wordleTask, WordleTask.ResultType.NEW_REMATCH_OFFER, tokens);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+            else if(response.contains("RETURNED_TO_LOBBY"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.RETURNED_TO_LOBBY, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+        }
+    }
+    
+    public static void AcceptRematchTask(WordleTask wordleTask)
+    {
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
+        System.out.println("Accept rematch response: " + response);
+        
+        if(response != null)
+        {
+            if(response.contains("REMATCH_ACCEPTED"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.REMATCH_ACCEPTED, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+        }
+    }
+    
+    public static void DeclineRematchTask(WordleTask wordleTask)
+    {
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
+        System.out.println("Decline rematch response: " + response);
+        
+        if(response != null)
+        {
+            if(response.contains("REMATCH_DECLINED"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.REMATCH_DECLINED, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+        }
+    }
+    
+    public static void ReturnToLobbyAfterGameTask(WordleTask wordleTask)
+    {
+        if(wordleTask.getStatus() != WordleTask.Status.IN_PROGRESS) SendMessageToServer(CreateMessageFromTask(wordleTask));
+        SetTaskStatus(wordleTask, WordleTask.Status.IN_PROGRESS);
+        String response = GetResponseOf(wordleTask.getTask()); //WaitForResponse();
+        System.out.println("Return to lobby after match response: " + response);
+        
+        if(response != null)
+        {
+            if(response.contains("RETURNED_TO_LOBBY"))
+            {
+                SetTaskResult(wordleTask, WordleTask.ResultType.RETURNED_TO_LOBBY, null);
+                SetTaskStatus(wordleTask, WordleTask.Status.COMPLETED);
+            }
+        }
     }
     
     

@@ -402,16 +402,51 @@ public class GuessWordActivity extends AppCompatActivity
         }
         else
         {
-            endGameDialog = new EndGameDialog(guessWordActivity, parameters.get(1), parameters.get(2), Integer.parseInt(parameters.get(3)), Integer.parseInt(parameters.get(4)));
+            endGameDialog = new EndGameDialog(guessWordActivity, parameters.get(0), parameters.get(1), Integer.parseInt(parameters.get(2)), Integer.parseInt(parameters.get(3)));
         }
         System.out.println("Show endgame.");
         endGameDialog.Show();
+        new Thread(new ListenToRematchOffersRunnable(guessWordActivity)).start();
+    }
+    
+    public void OfferRematch(String player1Name, String player2Name)
+    {
+        endGameDialog.Dismiss();
+        String playerToRematch = WordleClient.GetCurrentPlayer().getUsername().equals(player1Name) ? player2Name : player1Name;
+        new Thread(new RematchRequestRunnable(guessWordActivity, playerToRematch)).start();
+    }
+    
+    public void ShowRematchOffer(List<String> parameters)
+    {
+        endGameDialog.Dismiss();
+        new RematchOfferReceivedDialog(this, parameters.get(0)).Show();
+    }
+    
+    public void RematchAccepted()
+    {
+        ListenToRematchOffersRunnable.Stop();
+        startActivity(new Intent(getApplicationContext(), EnterWordActivity.class));
+        finish();
     }
     
     public void GoToLobby()
     {
+        endGameDialog.Dismiss();
+        ListenToRematchOffersRunnable.Stop();
         startActivity(new Intent(getApplicationContext(), LobbyActivity.class));
         finish();
+    }
+    
+    public void GoToLobbyRequest()
+    {
+        endGameDialog.Dismiss();
+        new Thread(new ReturnToLobbyRunnable(this)).start();
+    }
+    
+    public void RejectInfoDialog()
+    {
+        //new InfoDialog(this, "Düello teklifini reddettiniz.").Show();
+        GoToLobby();
     }
     
     public void InvalidWord()

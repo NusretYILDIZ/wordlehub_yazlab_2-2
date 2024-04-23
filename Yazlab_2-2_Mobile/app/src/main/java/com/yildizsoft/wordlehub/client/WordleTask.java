@@ -147,6 +147,11 @@ public class WordleTask
         INVALID_WORD,
         GAME_OVER,
         GAME_CONTINUES,
+        REMATCH_ACCEPTED,
+        REMATCH_DECLINED,
+        NEW_REMATCH_OFFER,
+        REMATCH_OFFER_SENT,
+        RETURNED_TO_LOBBY,
     }
     
     public enum Type
@@ -168,6 +173,12 @@ public class WordleTask
         PRE_GAME_SEND_WORD,
         IN_GAME_SEND_WORD,
         CHECK_GAME_STATUS,
+        OFFER_REMATCH,
+        WAIT_FOR_REMATCH_RESPONSE,
+        LISTEN_TO_REMATCH_OFFERS,
+        ACCEPT_REMATCH,
+        DECLINE_REMATCH,
+        RETURN_TO_LOBBY_AFTER_GAME
     }
     
     public enum Status

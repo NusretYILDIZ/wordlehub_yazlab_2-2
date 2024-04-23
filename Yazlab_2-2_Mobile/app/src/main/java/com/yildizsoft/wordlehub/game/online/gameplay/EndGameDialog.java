@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.CountDownTimer;
 import android.widget.Button;
+import com.yildizsoft.wordlehub.client.WordleClient;
 
 public class EndGameDialog
 {
@@ -64,6 +65,7 @@ public class EndGameDialog
             {
                 //new Thread(new ProcessGameRequestRunnable(guessWordActivity, username, true)).start();
                 timer.cancel();
+                guessWordActivity.runOnUiThread(() -> guessWordActivity.OfferRematch(player1Name, player2Name));
                 dialog.dismiss();
             }
         });
@@ -72,8 +74,8 @@ public class EndGameDialog
             public void onClick(DialogInterface dialog, int which)
             {
                 //new Thread(new ProcessGameRequestRunnable(guessWordActivity, username, false)).start();
-                guessWordActivity.runOnUiThread(guessWordActivity::GoToLobby);
                 timer.cancel();
+                guessWordActivity.runOnUiThread(guessWordActivity::GoToLobbyRequest);
                 dialog.dismiss();
             }
         });
@@ -86,7 +88,7 @@ public class EndGameDialog
             {
                 final Button rejectButton = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_NEGATIVE);
                 
-                timer = new CountDownTimer(10000, 500)
+                timer = new CountDownTimer(30000, 500)
                 {
                     @SuppressLint("SetTextI18n")
                     @Override

@@ -264,13 +264,24 @@ public class WordleClientHandler implements Runnable
         case "PRE_GAME_SEND_WORD", "IN_GAME_SEND_WORD", "CHECK_GAME_STATUS":
             GameManager.AddTask(new GameManager.Task(this.id, task, tokens));
             break;
+            
+        case "OFFER_REMATCH":
+            OfferRematchTask(tokens);
+            break;
         
         case "ACCEPT_REMATCH":
+            GameManager.AddTask(new GameManager.Task(this.id, task, tokens));
+            AcceptRematchTask(tokens);
             break;
         
         case "DECLINE_REMATCH":
             GameManager.AddTask(new GameManager.Task(this.id, task, tokens));
             DeclineRematchTask(tokens);
+            break;
+            
+        case "RETURN_TO_LOBBY_AFTER_GAME":
+            GameManager.Stop();
+            ReturnToLobbyAfterGameTask(tokens);
             break;
         }
     }
@@ -455,20 +466,77 @@ public class WordleClientHandler implements Runnable
         PrintToClient("GAME_REQUEST_REJECTED\"" + (destPlayer != null ? destPlayer.getUsername() : "<null>"));
     }
     
+    public void OfferRematchTask(List<String> tokens)
+    {
+        PlayerInfo thisPlayer = OnlinePlayers.GetOnlinePlayerByID(this.id);
+        PlayerInfo destPlayer = OnlinePlayers.GetOnlinePlayerByName(thisPlayer.getPlayingWith());
+        
+        if(thisPlayer != null && destPlayer != null)
+        {
+            ClientTask.AddNewTask(new ClientTask(destPlayer.getId(), "NEW_REMATCH_OFFER\"" + thisPlayer.getUsername()));
+            PrintToClient("REMATCH_OFFER_SENT");
+        }
+    }
+    
+    public void AcceptRematchTask(List<String> tokens)
+    {
+        PlayerInfo thisPlayer = OnlinePlayers.GetOnlinePlayerByID(this.id);
+        PlayerInfo destPlayer = OnlinePlayers.GetOnlinePlayerByName(thisPlayer.getPlayingWith());
+        
+        if(thisPlayer != null && destPlayer != null)
+        {
+            ClientTask.AddNewTask(new ClientTask(destPlayer.getId(), "REMATCH_ACCEPTED"));
+            PrintToClient("REMATCH_ACCEPTED");
+            
+            int wordLength = 0;
+            if(thisPlayer.getLobby() == PlayerLobby.NO_CONST_4_LETTER || thisPlayer.getLobby() == PlayerLobby.WITH_CONST_4_LETTER) wordLength = 4;
+            else if(thisPlayer.getLobby() == PlayerLobby.NO_CONST_5_LETTER || thisPlayer.getLobby() == PlayerLobby.WITH_CONST_5_LETTER) wordLength = 5;
+            else if(thisPlayer.getLobby() == PlayerLobby.NO_CONST_6_LETTER || thisPlayer.getLobby() == PlayerLobby.WITH_CONST_6_LETTER) wordLength = 6;
+            else if(thisPlayer.getLobby() == PlayerLobby.NO_CONST_7_LETTER || thisPlayer.getLobby() == PlayerLobby.WITH_CONST_7_LETTER) wordLength = 7;
+            
+            try
+            {
+                Thread.sleep(500);
+            }
+            catch(InterruptedException e)
+            {
+                throw new RuntimeException(e);
+            }
+            
+            new Thread(new GameManager(thisPlayer, destPlayer, wordLength)).start();
+        }
+    }
+    
     public void DeclineRematchTask(List<String> tokens)
     {
         PlayerInfo destPlayer = OnlinePlayers.GetOnlinePlayerByName(OnlinePlayers.GetOnlinePlayerByID(this.id).getPlayingWith());
         
         if(destPlayer != null)
         {
-            ClientTask.AddNewTask(new ClientTask(destPlayer.getId(), "REMATCH_DECLINED\"" + Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getUsername()));
+            ClientTask.AddNewTask(new ClientTask(destPlayer.getId(), "REMATCH_DECLINED"));
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setPlayingWith(null);
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setStatus(PlayerStatus.ONLINE);
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setPlayingWith(null);
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setStatus(PlayerStatus.ONLINE);
         }
         
-        PrintToClient("REMATCH_DECLINED\"" + (destPlayer != null ? destPlayer.getUsername() : "<null>"));
+        PrintToClient("REMATCH_DECLINED");
+    }
+    
+    public void ReturnToLobbyAfterGameTask(List<String> tokens)
+    {
+        PlayerInfo destPlayer = OnlinePlayers.GetOnlinePlayerByName(OnlinePlayers.GetOnlinePlayerByID(this.id).getPlayingWith());
+        
+        if(destPlayer != null)
+        {
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setPlayingWith(null);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setStatus(PlayerStatus.ONLINE);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setPlayingWith(null);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setStatus(PlayerStatus.ONLINE);
+            ClientTask.AddNewTask(new ClientTask(destPlayer.getId(), "RETURNED_TO_LOBBY"));
+        }
+        
+        PrintToClient("RETURNED_TO_LOBBY");
     }
     
     public void PrintToClient(String msg)

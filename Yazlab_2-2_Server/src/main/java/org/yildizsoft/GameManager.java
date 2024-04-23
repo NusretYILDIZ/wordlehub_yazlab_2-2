@@ -87,8 +87,8 @@ public class GameManager implements Runnable
             CheckGameStatus();
             break;
         
-        case "DECLINE_REMATCH":
-            DeclineRematchTask(task);
+        case "DECLINE_REMATCH", "ACCEPT_REMATCH":
+            Stop();
             break;
         }
     }
@@ -156,6 +156,7 @@ public class GameManager implements Runnable
             {
                 List<Character> comparison = Wordstation.CompareWords(playerData1.getWordToGuess(), initialWord);
                 playerData1.AddComparison(comparison);
+                playerData1.IncreaseGuessCount();
                 //playerData1.getComparisons().add(comparison);
                 
                 StringBuilder builder = new StringBuilder("VALID_WORD");
@@ -171,6 +172,7 @@ public class GameManager implements Runnable
                 //ClientTask.AddNewTask(new ClientTask(player2.getId(), "VALID_WORD"));
                 List<Character> comparison = Wordstation.CompareWords(playerData2.getWordToGuess(), initialWord);
                 playerData2.AddComparison(comparison);
+                playerData2.IncreaseGuessCount();
                 //playerData2.getComparisons().add(comparison);
                 
                 StringBuilder builder = new StringBuilder("VALID_WORD");
@@ -208,14 +210,14 @@ public class GameManager implements Runnable
         if(DidGuessCorrectly(playerData1)) HeWon(true);
         else if(DidGuessCorrectly(playerData2)) HeWon(false);
         
-        else if(!CanGuess(playerData1) && CanGuess(playerData2))
+        /*else if(!CanGuess(playerData1) && CanGuess(playerData2))
         {
         
         }
         else if(CanGuess(playerData1) && !CanGuess(playerData2))
         {
         
-        }
+        }*/
         else if(!CanGuess(playerData1) && !CanGuess(playerData2))
         {
             playerData1.setPoints(CalculatePoints(playerData1));
@@ -282,7 +284,8 @@ public class GameManager implements Runnable
     
     public boolean CanGuess(PlayerGameData playerGameData)
     {
-        return playerGameData.getGuesses().size() < wordLength;
+        //return playerGameData.getGuesses().size() < wordLength;
+        return playerGameData.getGuessCount() < wordLength;
     }
     
     public int CalculatePoints(PlayerGameData playerGameData)
@@ -402,6 +405,7 @@ public class GameManager implements Runnable
         private List<String> guesses;
         private List<List<Character>> comparisons;
         private int          points;
+        private int guessCount;
         
         public PlayerGameData()
         {
@@ -410,6 +414,7 @@ public class GameManager implements Runnable
             this.guesses         = new ArrayList<>();
             this.comparisons     = new ArrayList<>();
             this.points          = 0;
+            this.guessCount = 0;
         }
         
         public String getWordForOpponent()
@@ -462,9 +467,24 @@ public class GameManager implements Runnable
             this.comparisons = comparisons;
         }
         
+        public int getGuessCount()
+        {
+            return guessCount;
+        }
+        
+        public void setGuessCount(int guessCount)
+        {
+            this.guessCount = guessCount;
+        }
+        
         public void AddComparison(List<Character> com)
         {
             this.comparisons.add(com);
+        }
+        
+        public void IncreaseGuessCount()
+        {
+            this.guessCount++;
         }
     }
 }
