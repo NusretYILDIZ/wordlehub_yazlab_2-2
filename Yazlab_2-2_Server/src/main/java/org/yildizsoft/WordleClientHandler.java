@@ -264,6 +264,14 @@ public class WordleClientHandler implements Runnable
         case "SEND_WORD":
             GameManager.AddTask(new GameManager.Task(this.id, task, tokens));
             break;
+            
+        case "ACCEPT_REMATCH":
+            break;
+        
+        case "DECLINE_REMATCH":
+            GameManager.AddTask(new GameManager.Task(this.id, task, tokens));
+            DeclineRematchTask(tokens);
+            break;
         }
     }
     
@@ -443,7 +451,23 @@ public class WordleClientHandler implements Runnable
             Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setStatus(PlayerStatus.ONLINE);
         }
         
-        PrintToClient("GAME_REQUEST_REJECTED\"" + Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).getUsername());
+        PrintToClient("GAME_REQUEST_REJECTED\"" + (destPlayer != null ? destPlayer.getUsername() : "<null>"));
+    }
+    
+    public void DeclineRematchTask(List<String> tokens)
+    {
+        PlayerInfo destPlayer = OnlinePlayers.GetOnlinePlayerByName(OnlinePlayers.GetOnlinePlayerByID(this.id).getPlayingWith());
+        
+        if(destPlayer != null)
+        {
+            ClientTask.AddNewTask(new ClientTask(destPlayer.getId(), "REMATCH_DECLINED\"" + Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).getUsername()));
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setPlayingWith(null);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(this.id)).setStatus(PlayerStatus.ONLINE);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setPlayingWith(null);
+            Objects.requireNonNull(OnlinePlayers.GetOnlinePlayerByID(destPlayer.getId())).setStatus(PlayerStatus.ONLINE);
+        }
+        
+        PrintToClient("REMATCH_DECLINED\"" + (destPlayer != null ? destPlayer.getUsername() : "<null>"));
     }
     
     public void PrintToClient(String msg)

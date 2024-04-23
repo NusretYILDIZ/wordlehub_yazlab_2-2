@@ -78,6 +78,10 @@ public class GameManager implements Runnable
             if(inGame) InGameSendWordTask(task);
             else PreGameSendWordTask(task);
             break;
+        
+        case "DECLINE_REMATCH":
+            DeclineRematchTask(task);
+            break;
         }
     }
     
@@ -134,21 +138,27 @@ public class GameManager implements Runnable
             if(task.getClientID().equals(player1.getId()))
             {
                 List<Character> comparison = Wordstation.CompareWords(playerData1.getWordToGuess(), initialWord);
+                playerData1.getComparisons().add(comparison);
                 
                 StringBuilder builder = new StringBuilder("VALID_WORD");
                 for(Character c : comparison) builder.append('"').append(c);
                 
                 ClientTask.AddNewTask(new ClientTask(player1.getId(), builder.toString()));
+                
+                if(DidWin(comparison)) HeWon(true);
             }
             else if(task.getClientID().equals(player2.getId()))
             {
                 //ClientTask.AddNewTask(new ClientTask(player2.getId(), "VALID_WORD"));
                 List<Character> comparison = Wordstation.CompareWords(playerData2.getWordToGuess(), initialWord);
+                playerData2.getComparisons().add(comparison);
                 
                 StringBuilder builder = new StringBuilder("VALID_WORD");
                 for(Character c : comparison) builder.append('"').append(c);
                 
                 ClientTask.AddNewTask(new ClientTask(player2.getId(), builder.toString()));
+                
+                if(DidWin(comparison)) HeWon(false);
             }
             else System.err.println("[GameManager] We have an insider!");
         }
@@ -165,6 +175,53 @@ public class GameManager implements Runnable
             }
             else System.err.println("[GameManager] We have an insider!");
         }
+    }
+    
+    public void DeclineRematchTask(Task task)
+    {
+        Stop();
+    }
+    
+    public boolean DidWin(List<Character> coms)
+    {
+        boolean won = true;
+        
+        for(Character c : coms)
+        {
+            if(c != 'C')
+            {
+                won = false;
+                break;
+            }
+        }
+        
+        return won;
+    }
+    
+    public void HeWon(boolean firstPlayer)
+    {
+        inGame = false;
+        ClientTask.AddNewTask(new ClientTask(player1.getId(), "GAME_OVER\"" + (firstPlayer ? "1" : "2")));
+        ClientTask.AddNewTask(new ClientTask(player2.getId(), "GAME_OVER\"" + (firstPlayer ? "1" : "2")));
+    }
+    
+    public boolean CanGuess(PlayerGameData playerGameData)
+    {
+        return playerGameData.getGuesses().size() < wordLength;
+    }
+    
+    public int CalculatePoints(PlayerGameData playerGameData)
+    {
+        List<Character> lastGuess = playerGameData.getComparisons().getLast();
+        int points = 0;
+        
+        for(Character c : lastGuess)
+        {
+            if(c == 'C') points += 10;
+            else if(c == 'M') points += 5;
+        }
+        
+        return points;
     }
     
     public List<Task> GetTaskList()
@@ -268,12 +325,16 @@ public class GameManager implements Runnable
         private String       wordForOpponent;
         private String       wordToGuess;
         private List<String> guesses;
+        private List<List<Character>> comparisons;
+        private int          points;
         
         public PlayerGameData()
         {
             this.wordToGuess     = null;
             this.wordForOpponent = null;
             this.guesses         = new ArrayList<>();
+            this.comparisons     = new ArrayList<>();
+            this.points          = 0;
         }
         
         public String getWordForOpponent()
@@ -304,6 +365,26 @@ public class GameManager implements Runnable
         public void setGuesses(List<String> guesses)
         {
             this.guesses = guesses;
+        }
+        
+        public int getPoints()
+        {
+            return points;
+        }
+        
+        public void setPoints(int points)
+        {
+            this.points = points;
+        }
+        
+        public List<List<Character>> getComparisons()
+        {
+            return comparisons;
+        }
+        
+        public void setComparisons(List<List<Character>> comparisons)
+        {
+            this.comparisons = comparisons;
         }
     }
 }

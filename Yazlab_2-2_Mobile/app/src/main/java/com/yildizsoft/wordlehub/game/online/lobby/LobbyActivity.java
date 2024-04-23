@@ -80,6 +80,7 @@ public class LobbyActivity extends AppCompatActivity
             }
             
             lobbyNameText.setText(lobbyName);
+            WordleClient.GetCurrentPlayer().setStatus(PlayerStatus.ONLINE);
         }
         
         recycledLobbyView = findViewById(R.id.playerList);
